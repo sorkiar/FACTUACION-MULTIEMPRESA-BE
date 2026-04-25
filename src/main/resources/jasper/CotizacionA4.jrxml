@@ -1,0 +1,1004 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.5.final using JasperReports Library version 6.20.0 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="CotizacionA4" language="groovy" pageWidth="595" pageHeight="842"
+              whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20"
+              rightMargin="20" topMargin="20" bottomMargin="20">
+    <import value="com.api.multiempresa.util.InvoicingUtils"/>
+    <style name="Default" isDefault="true" mode="Transparent" backcolor="#333333" hTextAlign="Left"
+           hImageAlign="Left" vTextAlign="Middle" vImageAlign="Middle" isBlankWhenNull="true"
+           fontName="Arial" fontSize="8" pdfFontName="Helvetica">
+        <box>
+            <pen lineWidth="0.0" lineColor="#000000"/>
+        </box>
+    </style>
+    <style name="ColorIntercalado" mode="Transparent" hTextAlign="Left" hImageAlign="Left"
+           vTextAlign="Middle" vImageAlign="Middle" isBlankWhenNull="true" fontName="Arial"
+           fontSize="7" pdfFontName="Helvetica">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+            <style mode="Opaque" backcolor="#E1F0FF"/>
+        </conditionalStyle>
+    </style>
+    <style name="Cabecera" mode="Opaque" forecolor="#BFE1FF" backcolor="#BFE1FF" hTextAlign="Left"
+           hImageAlign="Left" vTextAlign="Middle" vImageAlign="Middle" isBlankWhenNull="true"
+           fontName="Arial" fontSize="8">
+        <pen lineWidth="0.5" lineStyle="Solid" lineColor="#2282C7"/>
+        <box>
+            <pen lineWidth="0.5" lineColor="#2282C7"/>
+        </box>
+    </style>
+
+    <parameter name="urlImagen" class="java.lang.String"/>
+
+    <field name="empr_ruc" class="java.lang.String"/>
+    <field name="empr_nombre_comercial" class="java.lang.String"/>
+    <field name="empr_razon_social" class="java.lang.String"/>
+    <field name="empr_direccion_fiscal" class="java.lang.String"/>
+    <field name="empr_telefono" class="java.lang.String"/>
+    <field name="empr_pagina_web" class="java.lang.String"/>
+    <field name="empr_pdf_marca_agua" class="java.lang.String"/>
+    <field name="empr_pdf_texto_inferior" class="java.lang.String"/>
+    <field name="empr_pdf_eslogan" class="java.lang.String"/>
+    <field name="empr_direccion_sucursal" class="java.lang.String"/>
+    <field name="tico_descripcion" class="java.lang.String"/>
+    <field name="comp_numero_comprobante" class="java.lang.String"/>
+    <field name="comp_descripcion_cliente" class="java.lang.String"/>
+    <field name="comp_direccion_cliente" class="java.lang.String"/>
+    <field name="clie_numero_documento" class="java.lang.String"/>
+    <field name="comp_descuento_global" class="java.lang.Integer"/>
+    <field name="comp_fecha_emicion" class="java.sql.Timestamp"/>
+    <field name="comp_descripcion_moneda" class="java.lang.String"/>
+    <field name="comp_simbolo_moneda" class="java.lang.String"/>
+    <field name="comp_condicion_pago" class="java.lang.String"/>
+    <field name="comp_estado" class="java.lang.String"/>
+    <field name="observaciones" class="java.lang.String"/>
+    <field name="priorizar_despacho" class="java.lang.Boolean"/>
+    <field name="otros_tributos" class="java.lang.Double"/>
+    <field name="icbper" class="java.lang.Double"/>
+    <field name="itco_codigo_interno" class="java.lang.String"/>
+    <field name="itco_cantidad" class="java.lang.Double"/>
+    <field name="itco_unidad_medida" class="java.lang.String"/>
+    <field name="itco_descripcion_completa" class="java.lang.String"/>
+    <field name="itco_precio_unitario" class="java.lang.Double"/>
+    <field name="itco_descuento" class="java.math.BigDecimal"/>
+    <field name="itco_tipo_igv" class="java.lang.Integer"/>
+    <field name="itco_igv" class="java.math.BigDecimal"/>
+
+    <variable name="subtotal" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[new java.math.BigDecimal($F{itco_cantidad}*$F{itco_precio_unitario}).setScale(2, java.math.RoundingMode.HALF_UP)]]></variableExpression>
+    </variable>
+    <variable name="descuento" class="java.lang.Double" calculation="Sum">
+        <variableExpression><![CDATA[$F{itco_descuento}.doubleValue()]]></variableExpression>
+    </variable>
+    <variable name="totaligv" class="java.lang.Double" calculation="Sum">
+        <variableExpression><![CDATA[($F{itco_cantidad}*$F{itco_precio_unitario})*0.18]]></variableExpression>
+    </variable>
+    <variable name="afecto" class="java.lang.Double" calculation="Sum">
+        <variableExpression><![CDATA[$F{itco_cantidad}*$F{itco_precio_unitario}]]></variableExpression>
+    </variable>
+    <variable name="otros" class="java.lang.Double" calculation="Sum">
+        <variableExpression><![CDATA[$F{otros_tributos}]]></variableExpression>
+    </variable>
+    <variable name="ticbper" class="java.lang.Double" calculation="Sum">
+        <variableExpression><![CDATA[$F{icbper}]]></variableExpression>
+    </variable>
+    <variable name="valor_venta" class="java.lang.Double">
+        <variableExpression><![CDATA[$V{subtotal}.doubleValue() - $V{descuento}]]></variableExpression>
+    </variable>
+
+    <pageHeader>
+        <band height="210" splitType="Stretch">
+
+            <!-- Línea divisoria superior -->
+            <line>
+                <reportElement x="0" y="142" width="555" height="1" forecolor="#999999"/>
+                <graphicElement><pen lineWidth="0.5" lineStyle="Dashed"/></graphicElement>
+            </line>
+
+            <!-- Cuadro tipo comprobante (derecha) -->
+            <rectangle>
+                <reportElement x="311" y="0" width="244" height="108" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="1.0" lineColor="#093697"/></graphicElement>
+            </rectangle>
+
+            <!-- RUC empresa en cuadro -->
+            <textField>
+                <reportElement x="311" y="2" width="243" height="26"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="20" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{empr_ruc}]]></textFieldExpression>
+            </textField>
+
+            <!-- COTIZACIÓN (título en cuadro) -->
+            <staticText>
+                <reportElement x="311" y="28" width="243" height="54" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="19" isBold="true"/>
+                </textElement>
+                <text><![CDATA[COTIZACIÓN]]></text>
+            </staticText>
+
+            <!-- Número de cotización -->
+            <textField>
+                <reportElement x="311" y="82" width="243" height="20"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="12" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{comp_numero_comprobante}]]></textFieldExpression>
+            </textField>
+
+            <!-- Logo empresa (izquierda) -->
+            <image scaleImage="RetainShape" hAlign="Left" vAlign="Middle">
+                <reportElement x="0" y="0" width="180" height="55"/>
+                <imageExpression><![CDATA[$P{urlImagen}]]></imageExpression>
+            </image>
+
+            <!-- Razón social empresa -->
+            <textField>
+                <reportElement x="0" y="61" width="311" height="16"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{empr_razon_social}]]></textFieldExpression>
+            </textField>
+
+            <!-- Labels empresa -->
+            <staticText>
+                <reportElement x="0" y="77" width="71" height="12" forecolor="#093697"/>
+                <box rightPadding="0"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Dirección :]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight">
+                <reportElement x="73" y="77" width="238" height="12"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{empr_direccion_fiscal}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="93" width="71" height="12" forecolor="#093697"/>
+                <box rightPadding="0"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Teléfonos :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="73" y="93" width="238" height="11"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{empr_telefono}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="104" width="71" height="12" forecolor="#093697"/>
+                <box rightPadding="0"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Página web :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="73" y="104" width="238" height="12"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{empr_pagina_web}]]></textFieldExpression>
+            </textField>
+
+            <!-- Datos cliente -->
+            <staticText>
+                <reportElement x="0" y="130" width="84" height="12"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Cliente :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="88" y="130" width="463" height="12"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_descripcion_cliente}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="146" width="84" height="12"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Doc. Identidad :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="88" y="146" width="78" height="12"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{clie_numero_documento}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="166" y="146" width="54" height="12"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Fecha:]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="220" y="146" width="74" height="12"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_fecha_emicion}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="294" y="146" width="46" height="12"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Moneda:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="340" y="146" width="92" height="12"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_descripcion_moneda}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="158" width="555" height="1" forecolor="#999999"/>
+                <graphicElement><pen lineWidth="0.5" lineStyle="Dashed"/></graphicElement>
+            </line>
+
+            <staticText>
+                <reportElement x="0" y="160" width="84" height="12"/>
+                <textElement textAlignment="Right" verticalAlignment="Top">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Dirección :]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight">
+                <reportElement x="88" y="161" width="463" height="18"/>
+                <textElement verticalAlignment="Top"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_direccion_cliente}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="179" width="555" height="1" forecolor="#999999"/>
+                <graphicElement><pen lineWidth="0.5" lineStyle="Dashed"/></graphicElement>
+            </line>
+
+            <staticText>
+                <reportElement x="0" y="182" width="84" height="12"/>
+                <textElement textAlignment="Right" verticalAlignment="Top">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Observación:]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="88" y="182" width="463" height="24"/>
+                <textElement verticalAlignment="Top"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{observaciones}]]></textFieldExpression>
+            </textField>
+
+        </band>
+    </pageHeader>
+
+    <columnHeader>
+        <band height="14" splitType="Stretch">
+            <line>
+                <reportElement x="0" y="0" width="555" height="1" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="8" y="0" width="44" height="13" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Código]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="58" y="0" width="44" height="13" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Cant.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="102" y="0" width="44" height="13" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[U. M.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="162" y="0" width="205" height="13" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Descripción]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="369" y="0" width="35" height="13" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Dcto (%)]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="408" y="0" width="56" height="13" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[P. U.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="463" y="0" width="92" height="13" forecolor="#093697"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Importe]]></text>
+            </staticText>
+            <line>
+                <reportElement x="0" y="13" width="555" height="1" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <!-- Separadores verticales -->
+            <line>
+                <reportElement x="58" y="0" width="1" height="14" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <line>
+                <reportElement x="102" y="0" width="1" height="14" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <line>
+                <reportElement x="147" y="0" width="1" height="14" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <line>
+                <reportElement x="367" y="0" width="1" height="14" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <line>
+                <reportElement x="406" y="0" width="1" height="14" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <line>
+                <reportElement x="463" y="0" width="1" height="14" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="13" splitType="Stretch">
+            <rectangle>
+                <reportElement style="ColorIntercalado" stretchType="RelativeToBandHeight" x="1" y="0" width="553" height="13"/>
+                <graphicElement><pen lineWidth="0.0"/></graphicElement>
+            </rectangle>
+            <textField isBlankWhenNull="true">
+                <reportElement style="ColorIntercalado" x="1" y="1" width="56" height="12"/>
+                <box leftPadding="3" bottomPadding="1"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{itco_codigo_interno}]]></textFieldExpression>
+            </textField>
+            <textField pattern="###0.00" isBlankWhenNull="true">
+                <reportElement style="ColorIntercalado" x="58" y="1" width="44" height="12"/>
+                <box bottomPadding="1"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{itco_cantidad}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement style="ColorIntercalado" x="102" y="1" width="45" height="12"/>
+                <box bottomPadding="1"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{itco_unidad_medida}]]></textFieldExpression>
+            </textField>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement style="ColorIntercalado" x="147" y="1" width="220" height="12"/>
+                <box bottomPadding="1"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{itco_descripcion_completa}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement style="ColorIntercalado" x="367" y="1" width="38" height="12"/>
+                <box bottomPadding="1"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[($F{itco_descuento} == null || $F{itco_descuento}.compareTo(java.math.BigDecimal.ZERO) == 0) ? "0%" : (Math.round($F{itco_descuento}.doubleValue() / ($F{itco_cantidad}.doubleValue() * $F{itco_precio_unitario}.doubleValue()) * 100) + "%")]]></textFieldExpression>
+            </textField>
+            <textField pattern="###0.00" isBlankWhenNull="true">
+                <reportElement style="ColorIntercalado" x="405" y="1" width="58" height="12"/>
+                <box bottomPadding="1"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{itco_precio_unitario}]]></textFieldExpression>
+            </textField>
+            <textField pattern="###0.00" isBlankWhenNull="true">
+                <reportElement style="ColorIntercalado" x="463" y="1" width="92" height="12"/>
+                <box bottomPadding="1"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="7"/></textElement>
+                <textFieldExpression><![CDATA[$F{itco_cantidad} * $F{itco_precio_unitario}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <lastPageFooter>
+        <band height="220" splitType="Stretch">
+
+            <!-- Línea superior azul -->
+            <line>
+                <reportElement x="0" y="0" width="555" height="1" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+
+            <!-- SON (izquierda) -->
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="1" y="4" width="310" height="25"/>
+                <textElement verticalAlignment="Bottom">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["SON: " + InvoicingUtils.convertir(new java.math.BigDecimal(($V{subtotal}.doubleValue() - $V{descuento}) * 1.18))]]></textFieldExpression>
+            </textField>
+
+            <!-- Línea separadora izquierda (bajo SON) -->
+            <line>
+                <reportElement x="1" y="29" width="310" height="1" forecolor="#093697"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+
+            <!-- TOTALES DERECHA (estilo Factura con rectángulos bordeados) -->
+            <!-- SUBTOTAL -->
+            <rectangle>
+                <reportElement x="448" y="4" width="106" height="15" forecolor="#FA2A31"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="311" y="4" width="133" height="15" forecolor="#093697"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="false"/>
+                </textElement>
+                <text><![CDATA[SUBTOTAL :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="448" y="4" width="14" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_simbolo_moneda}]]></textFieldExpression>
+            </textField>
+            <textField pattern="###,##0.00">
+                <reportElement x="464" y="4" width="87" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$V{subtotal}.doubleValue()]]></textFieldExpression>
+            </textField>
+
+            <!-- DESCUENTO -->
+            <rectangle>
+                <reportElement x="448" y="19" width="106" height="15" forecolor="#FA2A31"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="311" y="19" width="133" height="15" forecolor="#093697"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="false"/>
+                </textElement>
+                <text><![CDATA[DESCUENTO :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="448" y="19" width="14" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_simbolo_moneda}]]></textFieldExpression>
+            </textField>
+            <textField pattern="###,##0.00">
+                <reportElement x="464" y="19" width="87" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$V{descuento}]]></textFieldExpression>
+            </textField>
+
+            <!-- OP. GRAVADAS -->
+            <rectangle>
+                <reportElement x="448" y="34" width="106" height="15" forecolor="#FA2A31"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+
+            <textField>
+                <reportElement x="448" y="34" width="14" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_simbolo_moneda}]]></textFieldExpression>
+            </textField>
+            <textField pattern="###,##0.00">
+                <reportElement x="464" y="34" width="87" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$V{subtotal}.doubleValue() - $V{descuento}]]></textFieldExpression>
+            </textField>
+
+            <!-- I.G.V (18%) -->
+            <rectangle>
+                <reportElement x="448" y="49" width="106" height="15" forecolor="#FA2A31"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+
+            <textField>
+                <reportElement x="448" y="49" width="14" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_simbolo_moneda}]]></textFieldExpression>
+            </textField>
+            <textField pattern="###,##0.00">
+                <reportElement x="464" y="49" width="87" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[($V{subtotal}.doubleValue() - $V{descuento}) * 0.18]]></textFieldExpression>
+            </textField>
+
+            <!-- IMPORTE TOTAL (rect rojo igual que Factura) -->
+            <rectangle>
+                <reportElement x="448" y="64" width="106" height="15" forecolor="#FA2A31"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+
+            <textField>
+                <reportElement x="448" y="64" width="14" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_simbolo_moneda}]]></textFieldExpression>
+            </textField>
+            <textField pattern="###,##0.00">
+                <reportElement x="464" y="64" width="87" height="15"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font fontName="Arial" size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[($V{subtotal}.doubleValue() - $V{descuento}) * 1.18]]></textFieldExpression>
+            </textField>
+
+            <!-- === TABLA CUENTAS BANCARIAS === -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <!-- === FIN TABLA === -->
+
+            <!-- Condición de pago -->
+            <staticText>
+                <reportElement x="0" y="144" width="80" height="14" forecolor="#093697"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Condición :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="82" y="144" width="200" height="14"/>
+                <box leftPadding="3"/>
+                <textElement verticalAlignment="Middle"><font fontName="Arial" size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{comp_condicion_pago}]]></textFieldExpression>
+            </textField>
+
+            <!-- Línea separadora dashed -->
+            <line>
+                <reportElement x="0" y="162" width="555" height="1" forecolor="#999999"/>
+                <graphicElement><pen lineWidth="0.5" lineStyle="Dashed"/></graphicElement>
+            </line>
+
+            <!-- Nota de validez -->
+            <rectangle>
+                <reportElement x="0" y="166" width="555" height="30" forecolor="#FFF8E1" backcolor="#FFF8E1"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#FFC107"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="166" width="555" height="30" forecolor="#5D4037"/>
+                <box leftPadding="8" rightPadding="8" topPadding="4"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true" isItalic="true"/>
+                </textElement>
+                <text><![CDATA[DOCUMENTO DE COTIZACIÓN — No tiene validez fiscal ni legal como comprobante de pago.
+Los precios y condiciones son referenciales y están sujetos a cambio sin previo aviso.]]></text>
+            </staticText>
+
+            <!-- Vigencia -->
+            <staticText>
+                <reportElement x="0" y="200" width="555" height="14" forecolor="#666666"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isItalic="true"/>
+                </textElement>
+                <text><![CDATA[Vigencia de la cotización: 15 días hábiles a partir de la fecha de emisión.]]></text>
+            </staticText>
+
+
+            <!-- === TABLA BANCOS === -->
+            <staticText>
+                <reportElement mode="Opaque" x="120" y="112" width="55" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="9e0f8546-824f-456c-8c6a-60c938c76135"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[SOLES]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="175" y="92" width="65" height="10" forecolor="#093697" backcolor="#BFE1FF" uuid="7170e5c3-c5ea-4727-aada-5ea5ecc68488"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6" isBold="true"/>
+                </textElement>
+                <text><![CDATA[CUENTA]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="370" y="112" width="185" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="769f19e6-1ca1-4e5f-81f8-3740c053026e"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[00219100738768709858]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="122" width="120" height="10" forecolor="#000000" uuid="9e595fc8-d008-45d1-a8f6-3c00e7465d74"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[BBVA]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="240" y="132" width="130" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="32c36c5d-9431-48e2-b456-5289203e5e73"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[00-074-105491]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="240" y="122" width="130" height="10" forecolor="#000000" uuid="310137ef-c781-42c5-a15a-04065a914c46"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[0011-0396-0200534853]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="175" y="132" width="65" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="e1bbfe95-486d-4eca-8906-7a9b165e3ace"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[AHORROS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="120" y="92" width="55" height="10" forecolor="#093697" backcolor="#BFE1FF" uuid="8f7d97fc-04e4-4b35-b8de-40ce3eb87542"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6" isBold="true"/>
+                </textElement>
+                <text><![CDATA[MONEDA]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="92" width="120" height="10" forecolor="#093697" backcolor="#BFE1FF" uuid="fbaa51b2-ff3c-4ddb-81a6-e5e93e76c1f7"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6" isBold="true"/>
+                </textElement>
+                <text><![CDATA[BANCOS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="370" y="102" width="185" height="10" forecolor="#000000" uuid="37bd4664-86d3-4e59-8a30-a8f5ed9dfd00"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[00219100731706313657]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="175" y="102" width="65" height="10" forecolor="#000000" uuid="3d0d3069-b0eb-4985-8321-526f472af632"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[CORRIENTE]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="175" y="112" width="65" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="c4ea8d25-0994-4965-b28f-4c598bd85cad"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[CORRIENTE]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="240" y="92" width="130" height="10" forecolor="#093697" backcolor="#BFE1FF" uuid="45582c26-f233-4719-bb25-98d7338beaa9"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6" isBold="true"/>
+                </textElement>
+                <text><![CDATA[N° DE CUENTA]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="370" y="122" width="185" height="10" forecolor="#000000" uuid="f5b6bb82-4993-4bf6-af45-e71e73ed2806"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[011-396-000200534853-93]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="0" y="112" width="120" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="f5e13dc4-1eef-488e-9470-0ca5f94d8c74"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[BANCO DE CREDITO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="120" y="122" width="55" height="10" forecolor="#000000" uuid="3facf9a3-77c4-4e8e-965c-7ee4c2a98904"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[SOLES]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="175" y="122" width="65" height="10" forecolor="#000000" uuid="715b7008-ba86-4bfb-988f-fcc659691e96"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[AHORROS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="240" y="102" width="130" height="10" forecolor="#000000" uuid="07680863-c271-48a0-9351-fe009b63d841"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[191-7317063-1-36]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="120" y="132" width="55" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="6d23646d-0ef5-4d1e-9654-3f3be890b790"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[SOLES]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="370" y="92" width="185" height="10" forecolor="#093697" backcolor="#BFE1FF" uuid="b5e6b2a6-06c0-49b0-ae4a-4e5b19e166ab"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6" isBold="true"/>
+                </textElement>
+                <text><![CDATA[CODIGO INTERBANCARIO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="0" y="132" width="120" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="aef43a4f-b2ae-41ed-9e03-ed43219df272"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[BANCO DE LA NACION]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="120" y="102" width="55" height="10" forecolor="#000000" uuid="188fb09f-d01f-40c7-be6b-5a921f6907e1"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[DOLARES]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="370" y="132" width="185" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="4120396f-5143-434e-88d8-927dd3f47b54"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[-]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="240" y="112" width="130" height="10" forecolor="#000000" backcolor="#E1F0FF" uuid="b73498a5-7b3b-4bda-a2ab-c23a27b8ec60"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[191-7387687-0-98]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="102" width="120" height="10" forecolor="#000000" uuid="a425e6a6-ca02-458e-b268-5e77094ac6eb"/>
+                <box leftPadding="2">
+                    <pen lineWidth="0.25" lineColor="#2282C7"/>
+                    <topPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <leftPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <bottomPen lineWidth="0.25" lineColor="#2282C7"/>
+                    <rightPen lineWidth="0.25" lineColor="#2282C7"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="6"/>
+                </textElement>
+                <text><![CDATA[BANCO DE CREDITO]]></text>
+            </staticText>
+            <!-- === FIN TABLA BANCOS === -->
+
+            <staticText>
+                <reportElement x="311" y="34" width="133" height="15" forecolor="#093697"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="false"/>
+                </textElement>
+                <text><![CDATA[OP. GRAVADAS :]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="311" y="49" width="133" height="15" forecolor="#093697"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="false"/>
+                </textElement>
+                <text><![CDATA[I.G.V (18%) :]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="311" y="64" width="133" height="15" forecolor="#093697"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[IMPORTE TOTAL :]]></text>
+            </staticText>
+        </band>
+    </lastPageFooter>
+
+    <summary>
+        <band height="1" splitType="Stretch"/>
+    </summary>
+
+</jasperReport>

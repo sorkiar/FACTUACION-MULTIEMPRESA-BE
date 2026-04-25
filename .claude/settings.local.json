@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(python3:*)",
+      "Bash(\"D:/Proyectos Java/multi-empresa/src/main/java/com/api/multiempresa/service/impl/ClientServiceImpl.java\":*)",
+      "Bash(\"D:/Proyectos Java/multi-empresa/src/main/java/com/api/multiempresa/service/impl/DriverServiceImpl.java\":*)",
+      "Bash(\"D:/Proyectos Java/multi-empresa/src/main/java/com/api/multiempresa/service/impl/DocumentSeriesServiceImpl.java\":*)",
+      "Bash(\"D:/Proyectos Java/multi-empresa/src/main/java/com/api/multiempresa/service/impl/ExchangeRateServiceImpl.java\":*)",
+      "Bash(\"D:/Proyectos Java/multi-empresa/src/main/java/com/api/multiempresa/service/impl/ConfigurationServiceImpl.java\":*)",
+      "Bash(\"D:/Proyectos Java/multi-empresa/src/main/java/com/api/multiempresa/service/impl/UserServiceImpl.java\":*)",
+      "Bash(\"D:/Proyectos Java/multi-empresa/src/main/java/com/api/multiempresa/service/impl/ServiceServiceImpl.java\":*)",
+      "Bash(/tmp/write_service_impl.py:*)",
+      "Bash(printf:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(python:*)",
+      "Bash(node -e:*)",
+      "Bash(/tmp/GenHash.java:*)"
+    ]
+  }
+}

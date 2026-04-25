@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.5.final using JasperReports Library version 6.20.0 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="ServicioFichaA4" language="groovy" pageWidth="595" pageHeight="842"
+              whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20"
+              rightMargin="20" topMargin="20" bottomMargin="20">
+    <style name="Default" isDefault="true" mode="Transparent" hTextAlign="Left" vTextAlign="Middle"
+           isBlankWhenNull="true" fontName="Arial" fontSize="8" pdfFontName="Helvetica"/>
+    <style name="Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#093697" hTextAlign="Center"
+           vTextAlign="Middle" fontName="Arial" fontSize="10" isBold="true" pdfFontName="Helvetica-Bold"/>
+    <style name="SectionTitle" mode="Opaque" forecolor="#093697" backcolor="#BFE1FF"
+           hTextAlign="Left" vTextAlign="Middle" fontName="Arial" fontSize="8" isBold="true"
+           pdfFontName="Helvetica-Bold">
+        <box leftPadding="4">
+            <pen lineWidth="0.5" lineColor="#2282C7"/>
+        </box>
+    </style>
+    <style name="Label" mode="Transparent" forecolor="#093697" hTextAlign="Right" vTextAlign="Middle"
+           fontName="Arial" fontSize="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+    <style name="Value" mode="Transparent" forecolor="#333333" hTextAlign="Left" vTextAlign="Middle"
+           isBlankWhenNull="true" fontName="Arial" fontSize="8" pdfFontName="Helvetica">
+        <box leftPadding="3"/>
+    </style>
+    <style name="ValueWrap" mode="Transparent" forecolor="#333333" hTextAlign="Left" vTextAlign="Top"
+           isBlankWhenNull="true" fontName="Arial" fontSize="8" pdfFontName="Helvetica">
+        <box topPadding="3" leftPadding="3"/>
+    </style>
+    <style name="Link" mode="Transparent" forecolor="#0563C1" hTextAlign="Left" vTextAlign="Middle"
+           isBlankWhenNull="true" fontName="Arial" fontSize="7" isUnderline="true" pdfFontName="Helvetica">
+        <box leftPadding="3"/>
+    </style>
+    <style name="EvenRow" mode="Transparent" hTextAlign="Left" vTextAlign="Middle"
+           isBlankWhenNull="true" fontName="Arial" fontSize="8" pdfFontName="Helvetica">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+            <style mode="Opaque" backcolor="#F4F9FF"/>
+        </conditionalStyle>
+    </style>
+    <parameter name="urlImagen" class="java.lang.String"/>
+    <field name="empr_ruc" class="java.lang.String"/>
+    <field name="empr_razon_social" class="java.lang.String"/>
+    <field name="empr_nombre_comercial" class="java.lang.String"/>
+    <field name="empr_direccion_fiscal" class="java.lang.String"/>
+    <field name="empr_telefono" class="java.lang.String"/>
+    <field name="empr_pagina_web" class="java.lang.String"/>
+    <field name="sku" class="java.lang.String"/>
+    <field name="name" class="java.lang.String"/>
+    <field name="category" class="java.lang.String"/>
+    <field name="charge_unit" class="java.lang.String"/>
+    <field name="price" class="java.lang.String"/>
+    <field name="estimated_time" class="java.lang.String"/>
+    <field name="expected_delivery" class="java.lang.String"/>
+    <field name="requires_materials" class="java.lang.String"/>
+    <field name="requires_specification" class="java.lang.String"/>
+    <field name="short_description" class="java.lang.String"/>
+    <field name="detailed_description" class="java.lang.String"/>
+    <field name="includes_description" class="java.lang.String"/>
+    <field name="excludes_description" class="java.lang.String"/>
+    <field name="conditions" class="java.lang.String"/>
+    <field name="image_url" class="java.lang.String"/>
+    <field name="technical_sheet_url" class="java.lang.String"/>
+    <detail>
+        <band height="558" splitType="Stretch">
+            <image scaleImage="RetainShape" hAlign="Left" vAlign="Middle">
+                <reportElement x="0" y="0" width="150" height="36"/>
+                <imageExpression><![CDATA[$P{urlImagen}]]></imageExpression>
+            </image>
+            <textField>
+                <reportElement x="170" y="0" width="385" height="14"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="10" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{empr_razon_social}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="170" y="14" width="385" height="12"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{empr_nombre_comercial}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="170" y="26" width="385" height="10"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="7"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{empr_direccion_fiscal}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="40" width="555" height="1" forecolor="#093697"/>
+            </line>
+            <!-- IDENTIFICACIÓN -->
+            <rectangle>
+                <reportElement x="0" y="49" width="555" height="14" forecolor="#BFE1FF" backcolor="#BFE1FF"/>
+                <graphicElement>
+                    <pen lineWidth="0.5" lineColor="#2282C7"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="49" width="555" height="14" forecolor="#093697"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[IDENTIFICACIÓN]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="63" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[SKU :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="90" y="63" width="180" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{sku}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="270" y="63" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Categoría :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="360" y="63" width="195" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="77" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Nombre :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="90" y="77" width="465" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+            </textField>
+            <!-- DATOS COMERCIALES -->
+            <rectangle>
+                <reportElement x="0" y="96" width="555" height="14" forecolor="#BFE1FF" backcolor="#BFE1FF"/>
+                <graphicElement>
+                    <pen lineWidth="0.5" lineColor="#2282C7"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="96" width="555" height="14" forecolor="#093697"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[DATOS COMERCIALES]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="110" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Precio (S/) :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="90" y="110" width="180" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{price}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="270" y="110" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Unidad cobro :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="360" y="110" width="195" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{charge_unit}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="124" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Tiempo est. :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="90" y="124" width="180" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{estimated_time}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="270" y="124" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Entrega :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="360" y="124" width="195" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{expected_delivery}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="138" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Req. materiales :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="90" y="138" width="180" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{requires_materials}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="270" y="138" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Req. especif. :]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="360" y="138" width="195" height="14"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{requires_specification}]]></textFieldExpression>
+            </textField>
+            <!-- DESCRIPCIÓN -->
+            <rectangle>
+                <reportElement x="0" y="157" width="555" height="14" forecolor="#BFE1FF" backcolor="#BFE1FF"/>
+                <graphicElement>
+                    <pen lineWidth="0.5" lineColor="#2282C7"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="157" width="555" height="14" forecolor="#093697"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[DESCRIPCIÓN]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="171" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Top">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Breve :]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="90" y="171" width="465" height="14"/>
+                <box leftPadding="4" bottomPadding="2"/>
+                <textElement verticalAlignment="Top">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{short_description}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="187" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Top">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Detallada :]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="90" y="187" width="465" height="50"/>
+                <box leftPadding="4" bottomPadding="2"/>
+                <textElement verticalAlignment="Top">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{detailed_description}]]></textFieldExpression>
+            </textField>
+            <!-- ALCANCE DEL SERVICIO -->
+            <!--<rectangle>
+                <reportElement x="0" y="242" width="555" height="14" forecolor="#BFE1FF" backcolor="#BFE1FF"/>
+                <graphicElement>
+                    <pen lineWidth="0.5" lineColor="#2282C7"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="242" width="555" height="14" forecolor="#093697"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ALCANCE DEL SERVICIO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="256" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Top">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Incluye :]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="90" y="256" width="465" height="40"/>
+                <box leftPadding="4" bottomPadding="2"/>
+                <textElement verticalAlignment="Top">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{includes_description}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="302" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Top">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[No incluye :]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="90" y="302" width="465" height="40"/>
+                <box leftPadding="4" bottomPadding="2"/>
+                <textElement verticalAlignment="Top">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{excludes_description}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="348" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Top">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Condiciones :]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="90" y="348" width="465" height="40"/>
+                <box leftPadding="4" bottomPadding="2"/>
+                <textElement verticalAlignment="Top">
+                    <font fontName="Arial" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{conditions}]]></textFieldExpression>
+            </textField>
+            -->
+            <!-- RECURSOS DIGITALES -->
+            <rectangle>
+                <reportElement x="0" y="242" width="555" height="14" forecolor="#BFE1FF" backcolor="#BFE1FF"/>
+                <graphicElement>
+                    <pen lineWidth="0.5" lineColor="#2282C7"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="242" width="555" height="14" forecolor="#093697"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[RECURSOS DIGITALES]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="256" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Imagen :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="90" y="256" width="465" height="14" forecolor="#0563C1"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="7" isUnderline="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{image_url} != null ? $F{image_url} : "Sin imagen"]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="270" width="90" height="14" forecolor="#093697"/>
+                <box rightPadding="4"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="Arial" size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Ficha técnica :]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="90" y="270" width="465" height="14" forecolor="#0563C1"/>
+                <box leftPadding="4"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="Arial" size="7" isUnderline="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{technical_sheet_url} != null ? $F{technical_sheet_url} : "Sin ficha técnica"]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="290" width="555" height="1" forecolor="#093697"/>
+            </line>
+            <staticText>
+                <reportElement x="0" y="293" width="555" height="12" forecolor="#666666"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="7" isItalic="true"/>
+                </textElement>
+                <text><![CDATA[Documento referencial — los precios pueden estar sujetos a cambio según especificaciones del cliente.]]></text>
+            </staticText>
+        </band>
+    </detail>
+</jasperReport>
