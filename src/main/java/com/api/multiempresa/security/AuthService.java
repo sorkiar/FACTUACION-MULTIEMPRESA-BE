@@ -23,8 +23,9 @@ public class AuthService {
   private final JwtUtils jwtUtils;
 
   public ApiResponse<UserAuthResponse> login(AuthRequest request) {
-    com.api.multiempresa.dto.entity.User user = userRepository.findByUsername(request.getUsername())
-        .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado o credenciales inválidas"));
+    com.api.multiempresa.dto.entity.User user =
+        userRepository.findByUsernameAndCompany_Ruc(request.getUsername(), request.getRuc())
+            .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado o credenciales inválidas"));
 
     if (user.getStatus() == 0) {
       throw new LoginException("Usuario inactivo, contacte con el administrador", 403);
@@ -34,10 +35,17 @@ public class AuthService {
       throw new LoginException("Contraseña incorrecta", 401);
     }
 
+    String profileCode = user.getProfile().getCode() != null
+        ? user.getProfile().getCode()
+        : user.getProfile().getName().toUpperCase().replace(" ", "_");
+
+    // JWT subject = "ruc:username" to uniquely identify user across tenants
+    String subject = request.getRuc() + ":" + request.getUsername();
+
     UserDetails userDetails = new User(
-        user.getUsername(),
+        subject,
         user.getPassword(),
-        List.of(new SimpleGrantedAuthority("ROLE_" + user.getProfile().getCode()))
+        List.of(new SimpleGrantedAuthority("ROLE_" + profileCode))
     );
 
     Long companyId = user.getCompany() != null ? user.getCompany().getId() : null;

@@ -7,6 +7,7 @@ import com.api.multiempresa.dto.request.CarrierRequest;
 import com.api.multiempresa.dto.request.CarrierStatusRequest;
 import com.api.multiempresa.dto.response.ApiResponse;
 import com.api.multiempresa.dto.response.CarrierResponse;
+import com.api.multiempresa.exception.BusinessValidationException;
 import com.api.multiempresa.exception.ResourceNotFoundException;
 import com.api.multiempresa.repository.CarrierRepository;
 import com.api.multiempresa.repository.CompanyRepository;
@@ -45,8 +46,15 @@ public class CarrierServiceImpl implements CarrierService {
     String username = JwtUtils.extractUsernameFromContext();
     Long companyId = TenantContext.getCompanyId();
 
+    String docType = request.getDocType() != null ? request.getDocType() : "RUC";
+    if (repository.existsByDocTypeAndDocNumberAndCompany_IdAndStatusNot(
+        docType, request.getDocNumber(), companyId, 2)) {
+      throw new BusinessValidationException(
+          "Ya existe un transportista con ese tipo y número de documento");
+    }
+
     Carrier carrier = new Carrier();
-    carrier.setDocType(request.getDocType() != null ? request.getDocType() : "RUC");
+    carrier.setDocType(docType);
     carrier.setDocNumber(request.getDocNumber());
     carrier.setBusinessName(request.getBusinessName());
     carrier.setStatus(1);
@@ -65,7 +73,14 @@ public class CarrierServiceImpl implements CarrierService {
         .filter(c -> !Integer.valueOf(2).equals(c.getStatus()))
         .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado"));
 
-    carrier.setDocType(request.getDocType() != null ? request.getDocType() : "RUC");
+    String docType = request.getDocType() != null ? request.getDocType() : "RUC";
+    if (repository.existsByDocTypeAndDocNumberAndCompany_IdAndStatusNotAndIdNot(
+        docType, request.getDocNumber(), carrier.getCompany().getId(), 2, id)) {
+      throw new BusinessValidationException(
+          "Ya existe un transportista con ese tipo y número de documento");
+    }
+
+    carrier.setDocType(docType);
     carrier.setDocNumber(request.getDocNumber());
     carrier.setBusinessName(request.getBusinessName());
     carrier.setUpdatedBy(username);

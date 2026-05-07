@@ -1,13 +1,17 @@
 package com.api.multiempresa.controller;
 
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.external.FacturacionResponse;
 import com.api.multiempresa.dto.response.ApiResponse;
 import com.api.multiempresa.dto.response.FileDownload;
 import com.api.multiempresa.dto.response.SunatDocumentSummaryResponse;
+import com.api.multiempresa.exception.ResourceNotFoundException;
 import com.api.multiempresa.job.SunatDocumentJobService;
+import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.service.DocumentFileService;
 import com.api.multiempresa.service.DocumentResendService;
 import com.api.multiempresa.service.SunatDocumentListService;
+import com.api.multiempresa.util.TenantContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +33,7 @@ public class DocumentResendController {
   private final DocumentFileService fileService;
   private final SunatDocumentListService listService;
   private final SunatDocumentJobService jobService;
+  private final CompanyRepository companyRepository;
 
   /**
    * Reenvía manualmente una factura o boleta que tenga estado ERROR o RECHAZADO.
@@ -169,7 +174,10 @@ public class DocumentResendController {
    */
   @PostMapping("/remission-guides/check-ticket")
   public ApiResponse<FacturacionResponse> checkGuideTicket(@RequestParam String ticket) {
-    return new ApiResponse<>(null, jobService.checkGuideTicket(ticket));
+    Long companyId = TenantContext.getCompanyId();
+    Company company = companyRepository.findByIdAndDeletedAtIsNull(companyId)
+        .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada"));
+    return new ApiResponse<>(null, jobService.checkGuideTicket(company, ticket));
   }
 
   /**

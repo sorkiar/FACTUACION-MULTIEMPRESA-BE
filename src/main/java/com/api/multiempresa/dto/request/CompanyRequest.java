@@ -9,7 +9,7 @@ import lombok.Data;
 public class CompanyRequest {
 
   @NotBlank
-  @Pattern(regexp = "\\d{11}", message = "RUC debe tener 11 dígitos")
+  @Pattern(regexp = "\\d{11}", message = "RUC must be 11 digits")
   private String ruc;
 
   @NotBlank
@@ -37,5 +37,36 @@ public class CompanyRequest {
   @Size(max = 500)
   private String logoUrl;
 
-  private Integer status = 1;
+  // ── SUNAT fields ──────────────────────────────────────────
+
+  @Size(max = 10)
+  private String sunatEstablishmentCode;
+
+  private Boolean sunatAmazoniaLaw = false;
+
+  private Boolean sunatProduction = false;
+
+  @Size(max = 50)
+  private String sunatSecondaryUser;
+
+  @Size(max = 100)
+  private String sunatSecondaryUserPassword;
+
+  @Size(max = 50)
+  private String sunatGuideId;
+
+  @Size(max = 100)
+  private String sunatGuidePassword;
+
+  @Size(max = 100)
+  private String ubigDepartment;
+
+  @Size(max = 100)
+  private String ubigProvince;
+
+  @Size(max = 100)
+  private String ubigDistrict;
+
+  @Size(max = 20)
+  private String sunatDetractionAccount;
 }

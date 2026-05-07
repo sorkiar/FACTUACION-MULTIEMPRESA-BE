@@ -17,6 +17,7 @@ public class UserSpecification {
         predicates.add(cb.equal(root.get("company").get("id"), companyId));
       }
       predicates.add(cb.notEqual(root.get("status"), 2));
+      predicates.add(cb.isFalse(root.get("profile").get("isSystem")));
 
       if (filter.getId() != null) {
         predicates.add(cb.equal(root.get("id"), filter.getId()));

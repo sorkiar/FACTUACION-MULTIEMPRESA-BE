@@ -56,6 +56,49 @@ public class Company {
   @Column(name = "status", nullable = false)
   private Integer status = 1;
 
+  // ── SUNAT fields ──────────────────────────────────────────
+
+  @Column(name = "sunat_establishment_code", length = 10)
+  private String sunatEstablishmentCode;
+
+  @Column(name = "sunat_amazonia_law")
+  private Boolean sunatAmazoniaLaw = false;
+
+  @Column(name = "sunat_production")
+  private Boolean sunatProduction = false;
+
+  @Column(name = "sunat_certificate_public_key", columnDefinition = "TEXT")
+  private String sunatCertificatePublicKey;
+
+  @Column(name = "sunat_certificate_private_key", columnDefinition = "TEXT")
+  private String sunatCertificatePrivateKey;
+
+  @Column(name = "sunat_secondary_user", length = 50)
+  private String sunatSecondaryUser;
+
+  @Column(name = "sunat_secondary_user_password", length = 100)
+  private String sunatSecondaryUserPassword;
+
+  @Column(name = "sunat_guide_id", length = 50)
+  private String sunatGuideId;
+
+  @Column(name = "sunat_guide_password", length = 100)
+  private String sunatGuidePassword;
+
+  @Column(name = "ubig_department", length = 100)
+  private String ubigDepartment;
+
+  @Column(name = "ubig_province", length = 100)
+  private String ubigProvince;
+
+  @Column(name = "ubig_district", length = 100)
+  private String ubigDistrict;
+
+  @Column(name = "sunat_detraction_account", length = 20)
+  private String sunatDetractionAccount;
+
+  // ── Audit ─────────────────────────────────────────────────
+
   @Column(name = "created_at", updatable = false)
   @CreationTimestamp
   private LocalDateTime createdAt;

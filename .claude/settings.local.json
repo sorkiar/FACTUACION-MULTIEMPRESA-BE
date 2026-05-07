@@ -16,7 +16,8 @@
       "Bash(mvn clean compile:*)",
       "Bash(python:*)",
       "Bash(node -e:*)",
-      "Bash(/tmp/GenHash.java:*)"
+      "Bash(/tmp/GenHash.java:*)",
+      "Bash(xargs:*)"
     ]
   }
 }

@@ -15,6 +15,12 @@ public interface ConfigurationRepository
   Optional<Configuration> findByConfigGroupAndConfigKeyAndDeletedAtIsNull(
       String configGroup, String configKey);
 
+  List<Configuration> findByCompany_IdAndConfigGroupAndDeletedAtIsNull(
+      Long companyId, String configGroup);
+
+  Optional<Configuration> findByCompany_IdAndConfigGroupAndConfigKeyAndDeletedAtIsNull(
+      Long companyId, String configGroup, String configKey);
+
   @Query("SELECT c FROM Configuration c WHERE c.editable = :editable AND c.deletedAt IS NULL ORDER BY c.sortOrder ASC, c.configGroup ASC, c.configKey ASC")
   List<Configuration> findEditableOrdered(@Param("editable") Integer editable);
 

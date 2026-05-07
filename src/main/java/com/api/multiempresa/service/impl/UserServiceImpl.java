@@ -53,12 +53,16 @@ public class UserServiceImpl implements UserService {
       throw new BusinessValidationException("El usuario ya existe");
     }
 
+    if (request.getPassword() == null || request.getPassword().isBlank()) {
+      throw new BusinessValidationException("La contraseña es obligatoria");
+    }
+
     DocumentType documentType = documentTypeRepository.findById(
         request.getDocumentTypeId()
     ).orElseThrow(() -> new ResourceNotFoundException("Tipo de documento no encontrado"));
 
-    Profile profile = profileRepository.findById(
-        request.getProfileId()
+    Profile profile = profileRepository.findByIdAndCompany_IdAndIsSystemFalse(
+        request.getProfileId(), companyId
     ).orElseThrow(() -> new ResourceNotFoundException("Perfil no encontrado"));
 
     User user = new User();
@@ -113,14 +117,17 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public ApiResponse<Void> changePassword(ChangePasswordRequest request) {
-    String username = JwtUtils.extractUsernameFromContext();
+    String subject = JwtUtils.extractUsernameFromContext(); // "ruc:username"
+    String[] parts = subject.split(":", 2);
+    String ruc = parts[0];
+    String username = parts[1];
 
-    User user = repository.findByUsername(username)
+    User user = repository.findByUsernameAndCompany_Ruc(username, ruc)
         .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
     user.setPassword(passwordEncoder.encode(request.getNewPassword()));
     user.setPlainPassword(request.getNewPassword());
-    user.setUpdatedBy(username);
+    user.setUpdatedBy(subject);
 
     repository.save(user);
 

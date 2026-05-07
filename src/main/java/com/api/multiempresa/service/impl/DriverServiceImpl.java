@@ -10,6 +10,7 @@ import com.api.multiempresa.dto.request.DriverVehicleRequest;
 import com.api.multiempresa.dto.response.ApiResponse;
 import com.api.multiempresa.dto.response.DriverResponse;
 import com.api.multiempresa.dto.response.DriverVehicleResponse;
+import com.api.multiempresa.exception.BusinessValidationException;
 import com.api.multiempresa.exception.ResourceNotFoundException;
 import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.DriverRepository;
@@ -52,8 +53,15 @@ public class DriverServiceImpl implements DriverService {
     String username = JwtUtils.extractUsernameFromContext();
     Long companyId = TenantContext.getCompanyId();
 
+    String docType = request.getDocType() != null ? request.getDocType() : "DNI";
+    if (repository.existsByDocTypeAndDocNumberAndCompany_IdAndStatusNot(
+        docType, request.getDocNumber(), companyId, 2)) {
+      throw new BusinessValidationException(
+          "Ya existe un conductor con ese tipo y número de documento");
+    }
+
     Driver driver = new Driver();
-    driver.setDocType(request.getDocType() != null ? request.getDocType() : "DNI");
+    driver.setDocType(docType);
     driver.setDocNumber(request.getDocNumber());
     driver.setFirstName(request.getFirstName());
     driver.setLastName(request.getLastName());
@@ -74,7 +82,14 @@ public class DriverServiceImpl implements DriverService {
         .filter(d -> !Integer.valueOf(2).equals(d.getStatus()))
         .orElseThrow(() -> new ResourceNotFoundException("Conductor no encontrado"));
 
-    driver.setDocType(request.getDocType() != null ? request.getDocType() : "DNI");
+    String docType = request.getDocType() != null ? request.getDocType() : "DNI";
+    if (repository.existsByDocTypeAndDocNumberAndCompany_IdAndStatusNotAndIdNot(
+        docType, request.getDocNumber(), driver.getCompany().getId(), 2, id)) {
+      throw new BusinessValidationException(
+          "Ya existe un conductor con ese tipo y número de documento");
+    }
+
+    driver.setDocType(docType);
     driver.setDocNumber(request.getDocNumber());
     driver.setFirstName(request.getFirstName());
     driver.setLastName(request.getLastName());

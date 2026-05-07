@@ -33,6 +33,9 @@ public class DocumentType {
   @JoinColumn(name = "person_type_id", nullable = false)
   private PersonType personType;
 
+  @Column(name = "code", length = 10, nullable = false, updatable = false)
+  private String code;
+
   @Column(name = "name", length = 50, nullable = false)
   private String name;
 

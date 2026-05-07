@@ -1,0 +1,16 @@
+package com.api.multiempresa.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class ServiceCategoryRequest {
+
+  @NotBlank(message = "El nombre es obligatorio")
+  @Size(max = 100)
+  private String name;
+
+  @Size(max = 200)
+  private String description;
+}

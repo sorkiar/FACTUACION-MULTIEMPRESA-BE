@@ -6,7 +6,6 @@ import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.ExchangeRate;
 import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.ExchangeRateRepository;
-import com.api.multiempresa.service.ConfigurationService;
 import com.api.multiempresa.util.TenantContext;
 import java.math.BigDecimal;
 import java.net.CookieManager;
@@ -51,14 +50,15 @@ public class ExchangeRateJobService {
   private static final String SUNAT_ECONSULTA_DATA_URL =
       SUNAT_ECONSULTA_BASE + "/listarTipoCambio";
 
-  private static final String CONFIG_GROUP = "tipo_cambio";
-
   private static final DateTimeFormatter ECONSULTA_DATE_FORMAT =
       DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+  private static final java.time.ZoneId LIMA_ZONE = java.time.ZoneId.of("America/Lima");
+  private static final int FETCH_START_HOUR = 1; // 1 AM Lima
+  private static final int FETCH_INTERVAL_HOURS = 5; // intenta a 1h, 6h, 11h, 16h, 21h
+
   private final ExchangeRateRepository exchangeRateRepository;
   private final CompanyRepository companyRepository;
-  private final ConfigurationService configurationService;
   private final ObjectMapper objectMapper;
 
   private final RestTemplate restTemplate = new RestTemplate();
@@ -70,13 +70,22 @@ public class ExchangeRateJobService {
       .build();
 
   /**
-   * Corre cada minuto. A las 9:00 registra el tipo de cambio del día para todas las empresas.
-   * No usa ConfigurationService (requeriría TenantContext que es null en jobs).
+   * Corre cada 5 minutos. Intenta obtener el TC en ventanas horarias separadas por
+   * FETCH_INTERVAL_HOURS horas, comenzando desde FETCH_START_HOUR (1 AM Lima).
+   * Ejemplo con intervalo=5: intenta a la 1h, 6h, 11h, 16h, 21h.
    */
-  @Scheduled(fixedRate = 60_000)
+  @Scheduled(fixedRate = 300_000)
   public void scheduledFetch() {
     try {
-      if (LocalTime.now().getHour() != 9) return;
+      int currentHour = LocalTime.now(LIMA_ZONE).getHour();
+      boolean inFetchWindow = false;
+      for (int h = FETCH_START_HOUR; h < 24; h += FETCH_INTERVAL_HOURS) {
+        if (currentHour == h) {
+          inFetchWindow = true;
+          break;
+        }
+      }
+      if (!inFetchWindow) return;
       fetchTodayIfMissing();
     } catch (Exception e) {
       log.error("Error en scheduled exchange rate fetch: {}", e.getMessage(), e);
@@ -98,7 +107,7 @@ public class ExchangeRateJobService {
   }
 
   private void fetchTodayIfMissing() {
-    LocalDate today = LocalDate.now();
+    LocalDate today = LocalDate.now(LIMA_ZONE);
     List<Company> companies = companyRepository.findByDeletedAtIsNull();
     if (companies.isEmpty()) {
       log.debug("Sin empresas activas, omitiendo fetch de tipo de cambio");

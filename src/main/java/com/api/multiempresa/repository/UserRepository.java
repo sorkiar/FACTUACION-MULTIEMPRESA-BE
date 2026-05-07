@@ -10,12 +10,20 @@ public interface UserRepository
     extends JpaRepository<User, Long>,
     JpaSpecificationExecutor<User> {
 
-  @EntityGraph(attributePaths = {
-      "documentType",
-      "profile",
-      "company",
-  })
+  @EntityGraph(attributePaths = {"documentType", "profile", "company"})
   Optional<User> findByUsername(String username);
+
+  /** Used for login: find user by username + company RUC (multi-tenant). */
+  @EntityGraph(attributePaths = {"documentType", "profile", "company"})
+  Optional<User> findByUsernameAndCompany_Ruc(String username, String ruc);
+
+  /** Used for sidebar/paths: same lookup but eager-loads profile.menus. */
+  @EntityGraph(attributePaths = {"profile", "profile.menus", "company"})
+  Optional<User> findWithMenusByUsernameAndCompany_Ruc(String username, String ruc);
+
+  /** Legacy method kept for backward compatibility (single-tenant paths). */
+  @EntityGraph(attributePaths = {"profile", "profile.menus"})
+  Optional<User> findWithMenusByUsername(String username);
 
   boolean existsByUsername(String username);
 

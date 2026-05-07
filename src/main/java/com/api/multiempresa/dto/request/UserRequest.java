@@ -21,6 +21,5 @@ public class UserRequest {
   @NotBlank(message = "El usuario es obligatorio")
   private String username;
 
-  @NotBlank(message = "La contraseña es obligatoria")
   private String password;
 }

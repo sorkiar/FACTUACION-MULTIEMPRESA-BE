@@ -11,6 +11,10 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
   Optional<Company> findByRuc(String ruc);
 
+  boolean existsByRucAndDeletedAtIsNull(String ruc);
+
+  boolean existsByRucAndDeletedAtIsNullAndIdNot(String ruc, Long id);
+
   List<Company> findByDeletedAtIsNull();
 
   Optional<Company> findByIdAndDeletedAtIsNull(Long id);

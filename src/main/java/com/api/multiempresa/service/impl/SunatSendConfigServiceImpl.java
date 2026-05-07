@@ -6,9 +6,11 @@ import com.api.multiempresa.dto.request.SunatSendConfigRequest.DocumentSendConfi
 import com.api.multiempresa.dto.response.ApiResponse;
 import com.api.multiempresa.dto.response.SunatSendConfigResponse;
 import com.api.multiempresa.dto.response.SunatSendConfigResponse.DocumentSendConfig;
+import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.ConfigurationRepository;
 import com.api.multiempresa.service.SunatSendConfigService;
 import com.api.multiempresa.util.JwtUtils;
+import com.api.multiempresa.util.TenantContext;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class SunatSendConfigServiceImpl implements SunatSendConfigService {
   private static final String GROUP = "sunat_envio";
 
   private final ConfigurationRepository configurationRepository;
+  private final CompanyRepository companyRepository;
 
   // -------------------------------------------------------
   // Lectura
@@ -35,8 +38,10 @@ public class SunatSendConfigServiceImpl implements SunatSendConfigService {
 
   @Override
   public boolean isOnlineMode(String docTypeKey) {
+    Long companyId = TenantContext.getCompanyId();
     String value = configurationRepository
-        .findByConfigGroupAndConfigKeyAndDeletedAtIsNull(GROUP, docTypeKey + "_modo")
+        .findByCompany_IdAndConfigGroupAndConfigKeyAndDeletedAtIsNull(
+            companyId, GROUP, docTypeKey + "_modo")
         .map(Configuration::getConfigValue)
         .orElse("ONLINE");
     return "ONLINE".equals(value);
@@ -44,9 +49,10 @@ public class SunatSendConfigServiceImpl implements SunatSendConfigService {
 
   @Override
   public int getIntervalMinutes(String docTypeKey) {
+    Long companyId = TenantContext.getCompanyId();
     String value = configurationRepository
-        .findByConfigGroupAndConfigKeyAndDeletedAtIsNull(
-            GROUP, docTypeKey + "_intervalo_minutos")
+        .findByCompany_IdAndConfigGroupAndConfigKeyAndDeletedAtIsNull(
+            companyId, GROUP, docTypeKey + "_intervalo_minutos")
         .map(Configuration::getConfigValue)
         .orElse("30");
     try {
@@ -80,8 +86,9 @@ public class SunatSendConfigServiceImpl implements SunatSendConfigService {
   // -------------------------------------------------------
 
   private Map<String, String> loadGroup() {
+    Long companyId = TenantContext.getCompanyId();
     return configurationRepository
-        .findByConfigGroupAndDeletedAtIsNull(GROUP)
+        .findByCompany_IdAndConfigGroupAndDeletedAtIsNull(companyId, GROUP)
         .stream()
         .collect(Collectors.toMap(Configuration::getConfigKey, Configuration::getConfigValue));
   }
@@ -119,10 +126,12 @@ public class SunatSendConfigServiceImpl implements SunatSendConfigService {
   }
 
   private void saveOrUpdate(String key, String value, String datatype, String username) {
+    Long companyId = TenantContext.getCompanyId();
     Configuration cfg = configurationRepository
-        .findByConfigGroupAndConfigKeyAndDeletedAtIsNull(GROUP, key)
+        .findByCompany_IdAndConfigGroupAndConfigKeyAndDeletedAtIsNull(companyId, GROUP, key)
         .orElseGet(() -> {
           Configuration c = new Configuration();
+          c.setCompany(companyRepository.getReferenceById(companyId));
           c.setConfigGroup(GROUP);
           c.setConfigKey(key);
           c.setConfigDatatype(datatype);

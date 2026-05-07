@@ -16,5 +16,19 @@ public class CompanyResponse {
   private String website;
   private String logoUrl;
   private Integer status;
+
+  // ── SUNAT fields (no private key exposed) ─────────────────
+
+  private String sunatEstablishmentCode;
+  private Boolean sunatAmazoniaLaw;
+  private Boolean sunatProduction;
+  private Boolean sunatCertificateLoaded;
+  private String sunatSecondaryUser;
+  private String sunatGuideId;
+  private String ubigDepartment;
+  private String ubigProvince;
+  private String ubigDistrict;
+  private String sunatDetractionAccount;
+
   private LocalDateTime createdAt;
 }

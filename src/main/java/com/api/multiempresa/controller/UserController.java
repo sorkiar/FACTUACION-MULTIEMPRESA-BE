@@ -46,6 +46,11 @@ public class UserController {
     return service.findAll(filter);
   }
 
+  @PostMapping
+  public ApiResponse<UserResponse> create(@Valid @RequestBody UserRequest request) {
+    return service.create(request);
+  }
+
   @PutMapping("/{id}")
   public ApiResponse<UserResponse> update(
       @PathVariable Long id,

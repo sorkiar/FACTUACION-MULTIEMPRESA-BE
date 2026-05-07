@@ -40,8 +40,8 @@ import com.api.multiempresa.repository.RemissionGuideItemRepository;
 import com.api.multiempresa.repository.RemissionGuideRepository;
 import com.api.multiempresa.repository.SaleInstallmentRepository;
 import com.api.multiempresa.repository.SaleItemRepository;
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.repository.SunatRequestLogRepository;
-import com.api.multiempresa.service.ConfigurationService;
 import com.api.multiempresa.service.GoogleDriveService;
 import com.api.multiempresa.service.SunatSendConfigService;
 import java.io.File;
@@ -84,7 +84,6 @@ public class SunatDocumentJobService {
   private final DetractionCodeRepository detractionCodeRepository;
   private final ExchangeRateRepository exchangeRateRepository;
   private final SunatRequestLogRepository sunatRequestLogRepository;
-  private final ConfigurationService configurationService;
   private final GoogleDriveService googleDriveService;
   private final SunatSendConfigService sunatSendConfigService;
 
@@ -252,27 +251,8 @@ public class SunatDocumentJobService {
       CreditDebitNote note,
       List<CreditDebitNoteItem> items) {
 
-    Map<String, String> config = configurationService.getGroup("empresa_emisora");
-
-    // EMPRESA
-    CompanySendRequest empresa = new CompanySendRequest();
-    empresa.setEmprRuc(config.get("emprRuc"));
-    empresa.setEmprRazonSocial(config.get("emprRazonSocial"));
-    empresa.setEmprDireccionFiscal(config.get("emprDireccionFiscal"));
-    empresa.setEmprCodigoEstablecimientoSunat(config.get("emprCodigoEstablecimientoSunat"));
-    empresa.setEmprLeyAmazonia(Boolean.parseBoolean(config.get("emprLeyAmazonia")));
-    empresa.setEmprProduccion(Boolean.parseBoolean(config.get("emprProduccion")));
-    empresa.setEmprCertificadoLLavePublica(config.get("emprCertificadoLlavePublica"));
-    empresa.setEmprCertificadoLLavePrivada(config.get("emprCertificadoLlavePrivada"));
-    empresa.setEmprUsuarioSecundario(config.get("emprUsuarioSecundario"));
-    empresa.setEmprClaveUsuarioSecundario(config.get("emprClaveUsuarioSecundario"));
-
-    UbigeoSendRequest ubigeo = new UbigeoSendRequest();
-    ubigeo.setUbigUbigeo(config.get("ubigUbigeo"));
-    ubigeo.setUbigDepartamento(config.get("ubigDepartamento"));
-    ubigeo.setUbigProvincia(config.get("ubigProvincia"));
-    ubigeo.setUbigDistrito(config.get("ubigDistrito"));
-    empresa.setUbigeo(ubigeo);
+    Company company = note.getSale().getCompany();
+    CompanySendRequest empresa = buildCompanySendRequest(company);
 
     // CLIENTE (del documento original)
     Sale sale = note.getSale();
@@ -390,6 +370,7 @@ public class SunatDocumentJobService {
           && data.getXmlBase64() != null
           && data.getCdrBase64() != null) {
         String[] urls = uploadXmlAndCdr(
+            note.getSale().getCompany().getRuc(),
             note.getDocumentTypeSunat().getCode(),
             note.getSeries(), note.getSequence(),
             data.getXmlBase64(), data.getCdrBase64(), notasFolderId);
@@ -566,29 +547,8 @@ public class SunatDocumentJobService {
       List<RemissionGuideItem> items,
       List<RemissionGuideDriver> drivers) {
 
-    Map<String, String> config = configurationService.getGroup("empresa_emisora");
-
-    // EMPRESA (con credenciales de guía)
-    CompanySendRequest empresa = new CompanySendRequest();
-    empresa.setEmprRuc(config.get("emprRuc"));
-    empresa.setEmprRazonSocial(config.get("emprRazonSocial"));
-    empresa.setEmprDireccionFiscal(config.get("emprDireccionFiscal"));
-    empresa.setEmprCodigoEstablecimientoSunat(config.get("emprCodigoEstablecimientoSunat"));
-    empresa.setEmprLeyAmazonia(Boolean.parseBoolean(config.get("emprLeyAmazonia")));
-    empresa.setEmprProduccion(Boolean.parseBoolean(config.get("emprProduccion")));
-    empresa.setEmprCertificadoLLavePublica(config.get("emprCertificadoLlavePublica"));
-    empresa.setEmprCertificadoLLavePrivada(config.get("emprCertificadoLlavePrivada"));
-    empresa.setEmprUsuarioSecundario(config.get("emprUsuarioSecundario"));
-    empresa.setEmprClaveUsuarioSecundario(config.get("emprClaveUsuarioSecundario"));
-    empresa.setEmprGuiaId(config.get("emprGuiaId"));
-    empresa.setEmprGuiaClave(config.get("emprGuiaClave"));
-
-    UbigeoSendRequest ubigeo = new UbigeoSendRequest();
-    ubigeo.setUbigUbigeo(config.get("ubigUbigeo"));
-    ubigeo.setUbigDepartamento(config.get("ubigDepartamento"));
-    ubigeo.setUbigProvincia(config.get("ubigProvincia"));
-    ubigeo.setUbigDistrito(config.get("ubigDistrito"));
-    empresa.setUbigeo(ubigeo);
+    Company company = guide.getCompany();
+    CompanySendRequest empresa = buildCompanySendRequestWithGuia(company);
 
     // Destinatario (como cliente del comprobante)
     ClientSendRequest recipient = new ClientSendRequest();
@@ -714,6 +674,7 @@ public class SunatDocumentJobService {
         String xmlToUpload = guide.getXmlBase64();
         if (xmlToUpload != null && data.getCdrBase64() != null) {
           String[] urls = uploadXmlAndCdr(
+              guide.getCompany().getRuc(),
               "09", guide.getSeries(), guide.getSequence(),
               xmlToUpload, data.getCdrBase64(), guiasFolderId);
           guide.setXmlUrl(urls[0]);
@@ -859,38 +820,12 @@ public class SunatDocumentJobService {
       Sale sale,
       List<SaleItem> items) {
 
-    Map<String, String> config =
-        configurationService.getGroup("empresa_emisora");
+    Company company = sale.getCompany();
 
     // ==========================
     // EMPRESA
     // ==========================
-    CompanySendRequest empresa = new CompanySendRequest();
-    empresa.setEmprRuc(config.get("emprRuc"));
-    empresa.setEmprRazonSocial(config.get("emprRazonSocial"));
-    empresa.setEmprDireccionFiscal(config.get("emprDireccionFiscal"));
-    empresa.setEmprCodigoEstablecimientoSunat(
-        config.get("emprCodigoEstablecimientoSunat"));
-    empresa.setEmprLeyAmazonia(
-        Boolean.parseBoolean(config.get("emprLeyAmazonia")));
-    empresa.setEmprProduccion(
-        Boolean.parseBoolean(config.get("emprProduccion")));
-    empresa.setEmprCertificadoLLavePublica(
-        config.get("emprCertificadoLlavePublica"));
-    empresa.setEmprCertificadoLLavePrivada(
-        config.get("emprCertificadoLlavePrivada"));
-    empresa.setEmprUsuarioSecundario(
-        config.get("emprUsuarioSecundario"));
-    empresa.setEmprClaveUsuarioSecundario(
-        config.get("emprClaveUsuarioSecundario"));
-
-    UbigeoSendRequest ubigeo = new UbigeoSendRequest();
-    ubigeo.setUbigUbigeo(config.get("ubigUbigeo"));
-    ubigeo.setUbigDepartamento(config.get("ubigDepartamento"));
-    ubigeo.setUbigProvincia(config.get("ubigProvincia"));
-    ubigeo.setUbigDistrito(config.get("ubigDistrito"));
-
-    empresa.setUbigeo(ubigeo);
+    CompanySendRequest empresa = buildCompanySendRequest(company);
 
     // ==========================
     // CLIENTE
@@ -1032,8 +967,8 @@ public class SunatDocumentJobService {
     if (Boolean.TRUE.equals(sale.getHasDetraction())
         && sale.getDetractionCode() != null) {
 
-      Map<String, String> detrConfig = configurationService.getGroup("detraccion_retencion");
-      String detrAccount = detrConfig.getOrDefault("banco_nacion_detraccion", "");
+      String detrAccount = company.getSunatDetractionAccount() != null
+          ? company.getSunatDetractionAccount() : "";
 
       // detrMonto siempre en PEN:
       // - PEN: usar el valor almacenado
@@ -1119,6 +1054,7 @@ public class SunatDocumentJobService {
         String docFolderId = "01".equals(doc.getDocumentTypeSunat().getCode())
             ? facturasFolderId : boletasFolderId;
         String[] urls = uploadXmlAndCdr(
+            doc.getSale().getCompany().getRuc(),
             doc.getDocumentTypeSunat().getCode(),
             doc.getSeries(), doc.getSequence(),
             data.getXmlBase64(), data.getCdrBase64(), docFolderId);
@@ -1134,11 +1070,44 @@ public class SunatDocumentJobService {
     }
   }
 
-  private String[] uploadXmlAndCdr(String typeCode, String series,
+  // =====================================================
+  // COMPANY SEND REQUEST BUILDERS
+  // =====================================================
+
+  private CompanySendRequest buildCompanySendRequest(Company company) {
+    CompanySendRequest empresa = new CompanySendRequest();
+    empresa.setEmprRuc(company.getRuc());
+    empresa.setEmprRazonSocial(company.getBusinessName());
+    empresa.setEmprDireccionFiscal(company.getAddress());
+    empresa.setEmprCodigoEstablecimientoSunat(company.getSunatEstablishmentCode());
+    empresa.setEmprLeyAmazonia(Boolean.TRUE.equals(company.getSunatAmazoniaLaw()));
+    empresa.setEmprProduccion(Boolean.TRUE.equals(company.getSunatProduction()));
+    empresa.setEmprCertificadoLLavePublica(company.getSunatCertificatePublicKey());
+    empresa.setEmprCertificadoLLavePrivada(company.getSunatCertificatePrivateKey());
+    empresa.setEmprUsuarioSecundario(company.getSunatSecondaryUser());
+    empresa.setEmprClaveUsuarioSecundario(company.getSunatSecondaryUserPassword());
+
+    UbigeoSendRequest ubigeo = new UbigeoSendRequest();
+    ubigeo.setUbigUbigeo(company.getUbigeo());
+    ubigeo.setUbigDepartamento(company.getUbigDepartment());
+    ubigeo.setUbigProvincia(company.getUbigProvince());
+    ubigeo.setUbigDistrito(company.getUbigDistrict());
+    empresa.setUbigeo(ubigeo);
+
+    return empresa;
+  }
+
+  private CompanySendRequest buildCompanySendRequestWithGuia(Company company) {
+    CompanySendRequest empresa = buildCompanySendRequest(company);
+    empresa.setEmprGuiaId(company.getSunatGuideId());
+    empresa.setEmprGuiaClave(company.getSunatGuidePassword());
+    return empresa;
+  }
+
+  private String[] uploadXmlAndCdr(String companyRuc, String typeCode, String series,
                                    String sequence, String xmlBase64, String cdrBase64,
                                    String folderId) {
     try {
-      String companyRuc = configurationService.getGroup("empresa_emisora").get("emprRuc");
       String xmlFileName = "XML-" + companyRuc + "-" + typeCode + "-"
           + series + "-" + sequence + ".xml";
       String cdrFileName = "CDR-" + companyRuc + "-" + typeCode + "-"
@@ -1177,31 +1146,9 @@ public class SunatDocumentJobService {
 
     log.info("Consultando tickets pendientes de guías: {}", guides.size());
 
-    Map<String, String> config = configurationService.getGroup("empresa_emisora");
-
-    CompanySendRequest empresa = new CompanySendRequest();
-    empresa.setEmprRuc(config.get("emprRuc"));
-    empresa.setEmprRazonSocial(config.get("emprRazonSocial"));
-    empresa.setEmprDireccionFiscal(config.get("emprDireccionFiscal"));
-    empresa.setEmprCodigoEstablecimientoSunat(config.get("emprCodigoEstablecimientoSunat"));
-    empresa.setEmprLeyAmazonia(Boolean.parseBoolean(config.get("emprLeyAmazonia")));
-    empresa.setEmprProduccion(Boolean.parseBoolean(config.get("emprProduccion")));
-    empresa.setEmprCertificadoLLavePublica(config.get("emprCertificadoLlavePublica"));
-    empresa.setEmprCertificadoLLavePrivada(config.get("emprCertificadoLlavePrivada"));
-    empresa.setEmprUsuarioSecundario(config.get("emprUsuarioSecundario"));
-    empresa.setEmprClaveUsuarioSecundario(config.get("emprClaveUsuarioSecundario"));
-    empresa.setEmprGuiaId(config.get("emprGuiaId"));
-    empresa.setEmprGuiaClave(config.get("emprGuiaClave"));
-
-    UbigeoSendRequest ubigeo = new UbigeoSendRequest();
-    ubigeo.setUbigUbigeo(config.get("ubigUbigeo"));
-    ubigeo.setUbigDepartamento(config.get("ubigDepartamento"));
-    ubigeo.setUbigProvincia(config.get("ubigProvincia"));
-    ubigeo.setUbigDistrito(config.get("ubigDistrito"));
-    empresa.setUbigeo(ubigeo);
-
     for (RemissionGuide guide : guides) {
       try {
+        CompanySendRequest empresa = buildCompanySendRequestWithGuia(guide.getCompany());
         GuiaValidRequest validRequest = new GuiaValidRequest();
         validRequest.setEmpresa(empresa);
         validRequest.setTicket(guide.getSunatTicket());
@@ -1253,28 +1200,7 @@ public class SunatDocumentJobService {
           "La guía " + guide.getSeries() + "-" + guide.getSequence() + " no tiene ticket registrado.");
     }
 
-    Map<String, String> config = configurationService.getGroup("empresa_emisora");
-
-    CompanySendRequest empresa = new CompanySendRequest();
-    empresa.setEmprRuc(config.get("emprRuc"));
-    empresa.setEmprRazonSocial(config.get("emprRazonSocial"));
-    empresa.setEmprDireccionFiscal(config.get("emprDireccionFiscal"));
-    empresa.setEmprCodigoEstablecimientoSunat(config.get("emprCodigoEstablecimientoSunat"));
-    empresa.setEmprLeyAmazonia(Boolean.parseBoolean(config.get("emprLeyAmazonia")));
-    empresa.setEmprProduccion(Boolean.parseBoolean(config.get("emprProduccion")));
-    empresa.setEmprCertificadoLLavePublica(config.get("emprCertificadoLlavePublica"));
-    empresa.setEmprCertificadoLLavePrivada(config.get("emprCertificadoLlavePrivada"));
-    empresa.setEmprUsuarioSecundario(config.get("emprUsuarioSecundario"));
-    empresa.setEmprClaveUsuarioSecundario(config.get("emprClaveUsuarioSecundario"));
-    empresa.setEmprGuiaId(config.get("emprGuiaId"));
-    empresa.setEmprGuiaClave(config.get("emprGuiaClave"));
-
-    UbigeoSendRequest ubigeo = new UbigeoSendRequest();
-    ubigeo.setUbigUbigeo(config.get("ubigUbigeo"));
-    ubigeo.setUbigDepartamento(config.get("ubigDepartamento"));
-    ubigeo.setUbigProvincia(config.get("ubigProvincia"));
-    ubigeo.setUbigDistrito(config.get("ubigDistrito"));
-    empresa.setUbigeo(ubigeo);
+    CompanySendRequest empresa = buildCompanySendRequestWithGuia(guide.getCompany());
 
     GuiaValidRequest request = new GuiaValidRequest();
     request.setEmpresa(empresa);
@@ -1313,29 +1239,8 @@ public class SunatDocumentJobService {
    * Consulta el estado de un ticket de guía de remisión en el facturador externo.
    * Los datos de la empresa se obtienen de la configuración.
    */
-  public FacturacionResponse checkGuideTicket(String ticket) {
-    Map<String, String> config = configurationService.getGroup("empresa_emisora");
-
-    CompanySendRequest empresa = new CompanySendRequest();
-    empresa.setEmprRuc(config.get("emprRuc"));
-    empresa.setEmprRazonSocial(config.get("emprRazonSocial"));
-    empresa.setEmprDireccionFiscal(config.get("emprDireccionFiscal"));
-    empresa.setEmprCodigoEstablecimientoSunat(config.get("emprCodigoEstablecimientoSunat"));
-    empresa.setEmprLeyAmazonia(Boolean.parseBoolean(config.get("emprLeyAmazonia")));
-    empresa.setEmprProduccion(Boolean.parseBoolean(config.get("emprProduccion")));
-    empresa.setEmprCertificadoLLavePublica(config.get("emprCertificadoLlavePublica"));
-    empresa.setEmprCertificadoLLavePrivada(config.get("emprCertificadoLlavePrivada"));
-    empresa.setEmprUsuarioSecundario(config.get("emprUsuarioSecundario"));
-    empresa.setEmprClaveUsuarioSecundario(config.get("emprClaveUsuarioSecundario"));
-    empresa.setEmprGuiaId(config.get("emprGuiaId"));
-    empresa.setEmprGuiaClave(config.get("emprGuiaClave"));
-
-    UbigeoSendRequest ubigeo = new UbigeoSendRequest();
-    ubigeo.setUbigUbigeo(config.get("ubigUbigeo"));
-    ubigeo.setUbigDepartamento(config.get("ubigDepartamento"));
-    ubigeo.setUbigProvincia(config.get("ubigProvincia"));
-    ubigeo.setUbigDistrito(config.get("ubigDistrito"));
-    empresa.setUbigeo(ubigeo);
+  public FacturacionResponse checkGuideTicket(Company company, String ticket) {
+    CompanySendRequest empresa = buildCompanySendRequestWithGuia(company);
 
     GuiaValidRequest request = new GuiaValidRequest();
     request.setEmpresa(empresa);

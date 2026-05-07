@@ -69,8 +69,8 @@ public class ClientServiceImpl implements ClientService {
 
     validator.validateByPersonType(personType, request);
 
-    if (repository.existsByDocumentTypeIdAndDocumentNumberAndDeletedAtIsNull(
-        request.getDocumentTypeId(), request.getDocumentNumber())) {
+    if (repository.existsByDocumentTypeIdAndDocumentNumberAndCompanyIdAndDeletedAtIsNull(
+        request.getDocumentTypeId(), request.getDocumentNumber(), companyId)) {
       throw new BusinessValidationException(
           "Ya existe un cliente con ese tipo y número de documento");
     }
@@ -117,8 +117,9 @@ public class ClientServiceImpl implements ClientService {
 
     validator.validateByPersonType(personType, request);
 
-    if (repository.existsByDocumentTypeIdAndDocumentNumberAndDeletedAtIsNullAndIdNot(
-        request.getDocumentTypeId(), request.getDocumentNumber(), id)) {
+    Long companyId = TenantContext.getCurrentCompanyId();
+    if (repository.existsByDocumentTypeIdAndDocumentNumberAndCompanyIdAndDeletedAtIsNullAndIdNot(
+        request.getDocumentTypeId(), request.getDocumentNumber(), companyId, id)) {
       throw new BusinessValidationException(
           "Ya existe un cliente con ese tipo y número de documento");
     }
