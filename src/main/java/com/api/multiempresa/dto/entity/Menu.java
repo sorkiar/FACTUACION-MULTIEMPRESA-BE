@@ -30,6 +30,9 @@ public class Menu {
   @Column(length = 200)
   private String path;
 
+  @Column(name = "parent_id", insertable = false, updatable = false)
+  private Long parentId;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_id")
   private Menu parent;

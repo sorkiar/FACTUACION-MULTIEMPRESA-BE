@@ -87,7 +87,7 @@ public class Product {
   private String technicalSpec;
 
   // Archivos
-  @Column(name = "main_image_url", length = 255, nullable = false)
+  @Column(name = "main_image_url", length = 255)
   private String mainImageUrl;
 
   @Column(name = "technical_sheet_url", length = 255)

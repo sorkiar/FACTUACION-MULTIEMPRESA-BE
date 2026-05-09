@@ -1,5 +1,6 @@
 package com.api.multiempresa.service.impl;
 
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.ExchangeRate;
 import com.api.multiempresa.dto.response.ApiResponse;
 import com.api.multiempresa.dto.response.ExchangeRateResponse;
@@ -61,16 +62,15 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
       throw new IllegalArgumentException("La fecha inicial no puede ser mayor a la final");
     }
 
-    Long companyId = TenantContext.getCompanyId();
-
-    exchangeRateJobService.fetchAndSaveRange(from, to);
+    List<Company> companies = companyRepository.findByDeletedAtIsNull();
+    exchangeRateJobService.fetchAndSaveRange(from, to, companies);
 
     Map<LocalDate, BigDecimal> purchaseMap = exchangeRateRepository
         .findByDateBetweenAndType(from, to, "C").stream()
-        .collect(Collectors.toMap(ExchangeRate::getDate, ExchangeRate::getValue));
+        .collect(Collectors.toMap(ExchangeRate::getDate, ExchangeRate::getValue, (a, b) -> a));
     Map<LocalDate, BigDecimal> saleMap = exchangeRateRepository
         .findByDateBetweenAndType(from, to, "V").stream()
-        .collect(Collectors.toMap(ExchangeRate::getDate, ExchangeRate::getValue));
+        .collect(Collectors.toMap(ExchangeRate::getDate, ExchangeRate::getValue, (a, b) -> a));
 
     Map<LocalDate, ExchangeRateResponse> byDate = new TreeMap<>();
     purchaseMap.forEach((date, value) -> {

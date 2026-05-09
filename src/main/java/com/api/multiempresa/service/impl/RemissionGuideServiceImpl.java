@@ -9,6 +9,7 @@ import com.api.multiempresa.dto.entity.DriverVehicle;
 import com.api.multiempresa.dto.entity.RemissionGuide;
 import com.api.multiempresa.dto.entity.RemissionGuideDriver;
 import com.api.multiempresa.dto.entity.RemissionGuideItem;
+import com.api.multiempresa.dto.entity.TransferReason;
 import com.api.multiempresa.dto.filter.RemissionGuideFilter;
 import com.api.multiempresa.dto.mapper.RemissionGuideMapper;
 import com.api.multiempresa.dto.request.RemissionGuideDriverRequest;
@@ -29,6 +30,7 @@ import com.api.multiempresa.repository.ProductRepository;
 import com.api.multiempresa.repository.RemissionGuideDriverRepository;
 import com.api.multiempresa.repository.RemissionGuideItemRepository;
 import com.api.multiempresa.repository.RemissionGuideRepository;
+import com.api.multiempresa.repository.TransferReasonRepository;
 import com.api.multiempresa.repository.spec.RemissionGuideSpecification;
 import com.api.multiempresa.service.RemissionGuidePdfService;
 import com.api.multiempresa.service.RemissionGuideService;
@@ -55,6 +57,7 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
   private final CarrierRepository carrierRepository;
   private final DriverRepository driverMasterRepository;
   private final DriverVehicleRepository vehicleRepository;
+  private final TransferReasonRepository transferReasonRepository;
   private final RemissionGuideMapper mapper;
   private final RemissionGuidePdfService pdfService;
   private final SunatDocumentJobService sunatDocumentJobService;
@@ -95,14 +98,6 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
       }
     }
 
-    if ("OTROS".equals(request.getTransferReason())) {
-      if (request.getTransferReasonDescription() == null
-          || request.getTransferReasonDescription().isBlank()) {
-        throw new BusinessValidationException(
-            "transferReasonDescription es obligatorio cuando transferReason = OTROS");
-      }
-    }
-
     // 2. Reservar secuencia en la serie (con lock pesimista)
     DocumentSeries series = documentSeriesRepository
         .findActiveByDocumentTypeCodeForUpdate("09", 1)
@@ -121,7 +116,16 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
     guide.setSequence(String.format("%08d", nextSequence));
     guide.setIssueDate(LocalDateTime.now());
     guide.setTransferDate(request.getTransferDate());
-    guide.setTransferReason(request.getTransferReason());
+
+    TransferReason transferReason = transferReasonRepository.findById(request.getTransferReasonId())
+        .orElseThrow(() -> new ResourceNotFoundException("Motivo de traslado no encontrado"));
+    if ("13".equals(transferReason.getCode())
+        && (request.getTransferReasonDescription() == null
+            || request.getTransferReasonDescription().isBlank())) {
+      throw new BusinessValidationException(
+          "transferReasonDescription es obligatorio cuando el motivo de traslado es 'Otros'");
+    }
+    guide.setTransferReason(transferReason);
     guide.setTransferReasonDescription(request.getTransferReasonDescription());
     guide.setTransportMode(request.getTransportMode());
     guide.setGrossWeight(request.getGrossWeight());

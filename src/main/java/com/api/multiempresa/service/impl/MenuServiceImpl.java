@@ -1,7 +1,6 @@
 package com.api.multiempresa.service.impl;
 
 import com.api.multiempresa.dto.entity.Menu;
-import com.api.multiempresa.dto.entity.Profile;
 import com.api.multiempresa.dto.mapper.MenuMapper;
 import com.api.multiempresa.dto.request.MenuRequest;
 import com.api.multiempresa.dto.request.MenuStatusRequest;
@@ -58,12 +57,7 @@ public class MenuServiceImpl implements MenuService {
     applyRequest(menu, request);
     Menu saved = repository.save(menu);
 
-    // Auto-assign new menu to all SYSTEMS profiles across all companies
-    List<Profile> systemsProfiles = profileRepository.findByIsSystemTrue();
-    for (Profile p : systemsProfiles) {
-      p.getMenus().add(saved);
-      profileRepository.save(p);
-    }
+    profileRepository.assignMenuToAllSystemProfiles(saved.getId());
 
     return new ApiResponse<>("Menú registrado correctamente", mapper.toResponse(saved));
   }
@@ -117,14 +111,14 @@ public class MenuServiceImpl implements MenuService {
     List<Menu> allowed = user.getProfile().getMenus().stream()
         .filter(m -> m.getStatus() == 1 && menuType.equals(m.getMenuType()))
         .sorted(Comparator.comparingInt(Menu::getSortOrder).thenComparingLong(Menu::getId))
-        .collect(Collectors.toList());
+        .toList();
 
     Map<Long, List<Menu>> byParent = allowed.stream()
-        .filter(m -> m.getParent() != null)
-        .collect(Collectors.groupingBy(m -> m.getParent().getId()));
+        .filter(m -> m.getParentId() != null)
+        .collect(Collectors.groupingBy(Menu::getParentId));
 
     List<SidebarItemResponse> items = allowed.stream()
-        .filter(m -> m.getParent() == null)
+        .filter(m -> m.getParentId() == null)
         .map(parent -> {
           SidebarItemResponse item = new SidebarItemResponse();
           item.setName(parent.getName());

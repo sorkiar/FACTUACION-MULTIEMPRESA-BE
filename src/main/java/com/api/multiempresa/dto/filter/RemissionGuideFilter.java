@@ -9,7 +9,7 @@ public class RemissionGuideFilter {
   private Long id;
   private String series;
   private String status;
-  private String transferReason;
+  private Long transferReasonId;
   private String transportMode;
   private LocalDate startDate;
   private LocalDate endDate;

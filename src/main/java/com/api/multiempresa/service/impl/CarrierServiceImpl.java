@@ -35,10 +35,7 @@ public class CarrierServiceImpl implements CarrierService {
 
   @Override
   public ApiResponse<CarrierResponse> findById(Long id) {
-    Carrier carrier = repository.findById(id)
-        .filter(c -> !Integer.valueOf(2).equals(c.getStatus()))
-        .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado"));
-    return new ApiResponse<>("Transportista obtenido correctamente", mapper.toResponse(carrier));
+    return new ApiResponse<>("Transportista obtenido correctamente", mapper.toResponse(findOrThrow(id)));
   }
 
   @Override
@@ -69,9 +66,7 @@ public class CarrierServiceImpl implements CarrierService {
   public ApiResponse<CarrierResponse> update(Long id, CarrierRequest request) {
     String username = JwtUtils.extractUsernameFromContext();
 
-    Carrier carrier = repository.findById(id)
-        .filter(c -> !Integer.valueOf(2).equals(c.getStatus()))
-        .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado"));
+    Carrier carrier = findOrThrow(id);
 
     String docType = request.getDocType() != null ? request.getDocType() : "RUC";
     if (repository.existsByDocTypeAndDocNumberAndCompany_IdAndStatusNotAndIdNot(
@@ -93,14 +88,18 @@ public class CarrierServiceImpl implements CarrierService {
   public ApiResponse<Void> updateStatus(Long id, CarrierStatusRequest request) {
     String username = JwtUtils.extractUsernameFromContext();
 
-    Carrier carrier = repository.findById(id)
-        .filter(c -> !Integer.valueOf(2).equals(c.getStatus()))
-        .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado"));
+    Carrier carrier = findOrThrow(id);
 
     carrier.setStatus(request.getStatus());
     carrier.setUpdatedBy(username);
     repository.save(carrier);
 
     return new ApiResponse<>("Estado actualizado correctamente", null);
+  }
+
+  private Carrier findOrThrow(Long id) {
+    Long companyId = TenantContext.getCurrentCompanyId();
+    return repository.findByIdAndCompany_IdAndStatusNot(id, companyId, 2)
+        .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado"));
   }
 }

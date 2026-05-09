@@ -53,9 +53,7 @@ public class ClientServiceImpl implements ClientService {
   @Override
   @Transactional
   public ApiResponse<ClientResponse> findById(Long id) {
-    Client client = repository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
-    return new ApiResponse<>("Cliente obtenido correctamente", mapper.toResponse(client));
+    return new ApiResponse<>("Cliente obtenido correctamente", mapper.toResponse(findOrThrow(id)));
   }
 
   @Override
@@ -109,8 +107,7 @@ public class ClientServiceImpl implements ClientService {
   public ApiResponse<ClientResponse> update(Long id, ClientRequest request) {
     String username = JwtUtils.extractUsernameFromContext();
 
-    Client client = repository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+    Client client = findOrThrow(id);
 
     PersonType personType = personTypeRepository.findById(request.getPersonTypeId())
         .orElseThrow(() -> new ResourceNotFoundException("Tipo de persona no válido"));
@@ -153,8 +150,7 @@ public class ClientServiceImpl implements ClientService {
   @Override
   @Transactional
   public ApiResponse<Void> updateStatus(Long id, ClientStatusRequest request) {
-    Client client = repository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+    Client client = findOrThrow(id);
 
     client.setStatus(request.getStatus());
     client.setUpdatedBy(JwtUtils.extractUsernameFromContext());
@@ -167,9 +163,7 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   public ApiResponse<List<ClientAddressResponse>> findAddresses(Long clientId) {
-    if (!repository.existsById(clientId)) {
-      throw new ResourceNotFoundException("Cliente no encontrado");
-    }
+    findOrThrow(clientId);
     return new ApiResponse<>("Direcciones listadas correctamente",
         addressMapper.toResponseList(addressRepository.findByClientIdAndDeletedAtIsNull(clientId)));
   }
@@ -178,8 +172,7 @@ public class ClientServiceImpl implements ClientService {
   @Transactional
   public ApiResponse<ClientAddressResponse> addAddress(Long clientId,
       ClientAddressRequest request) {
-    Client client = repository.findById(clientId)
-        .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+    Client client = findOrThrow(clientId);
 
     ClientAddress addr = new ClientAddress();
     addr.setClient(client);
@@ -207,6 +200,12 @@ public class ClientServiceImpl implements ClientService {
 
     return new ApiResponse<>("Dirección actualizada correctamente",
         addressMapper.toResponse(addressRepository.save(addr)));
+  }
+
+  private Client findOrThrow(Long id) {
+    Long companyId = TenantContext.getCurrentCompanyId();
+    return repository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
   }
 
   @Override

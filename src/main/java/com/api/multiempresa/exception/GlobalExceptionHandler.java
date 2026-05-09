@@ -1,6 +1,9 @@
 package com.api.multiempresa.exception;
 
 import com.api.multiempresa.dto.response.ApiResponse;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,27 @@ public class GlobalExceptionHandler {
    * @param ex the exception that was thrown
    * @return a ResponseEntity containing an ApiResponse with the error message
    */
+  private static final Pattern UNKNOWN_COLUMN_PATTERN =
+      Pattern.compile("Unknown column '(?:[^.]+\\.)?([^']+)' in '([^']+)'");
+
+  @ExceptionHandler(DataAccessException.class)
+  public ResponseEntity<ApiResponse<Object>> handleDataAccessException(DataAccessException ex) {
+    Throwable root = ex;
+    while (root.getCause() != null) root = root.getCause();
+    String msg = root.getMessage() != null ? root.getMessage() : ex.getMessage();
+
+    Matcher m = UNKNOWN_COLUMN_PATTERN.matcher(msg != null ? msg : "");
+    if (m.find()) {
+      String column = m.group(1);
+      String context = m.group(2);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(new ApiResponse<>(
+              "Columna '" + column + "' no encontrada en '" + context + "'. Ejecute las migraciones pendientes.", null));
+    }
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ApiResponse<>("Error de acceso a datos. Contacte al administrador.", null));
+  }
+
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ResponseEntity<ApiResponse<Object>> handleMissingParams(
       MissingServletRequestParameterException ex) {

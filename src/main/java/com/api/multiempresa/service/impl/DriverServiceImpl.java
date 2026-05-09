@@ -41,11 +41,8 @@ public class DriverServiceImpl implements DriverService {
 
   @Override
   public ApiResponse<DriverResponse> findById(Long id) {
-    Driver driver = repository.findById(id)
-        .filter(d -> !Integer.valueOf(2).equals(d.getStatus()))
-        .orElseThrow(() -> new ResourceNotFoundException("Conductor no encontrado"));
     return new ApiResponse<>("Conductor obtenido correctamente",
-        mapper.toResponseWithVehicles(driver));
+        mapper.toResponseWithVehicles(findOrThrow(id)));
   }
 
   @Override
@@ -78,9 +75,7 @@ public class DriverServiceImpl implements DriverService {
   public ApiResponse<DriverResponse> update(Long id, DriverRequest request) {
     String username = JwtUtils.extractUsernameFromContext();
 
-    Driver driver = repository.findById(id)
-        .filter(d -> !Integer.valueOf(2).equals(d.getStatus()))
-        .orElseThrow(() -> new ResourceNotFoundException("Conductor no encontrado"));
+    Driver driver = findOrThrow(id);
 
     String docType = request.getDocType() != null ? request.getDocType() : "DNI";
     if (repository.existsByDocTypeAndDocNumberAndCompany_IdAndStatusNotAndIdNot(
@@ -104,9 +99,7 @@ public class DriverServiceImpl implements DriverService {
   public ApiResponse<Void> updateStatus(Long id, DriverStatusRequest request) {
     String username = JwtUtils.extractUsernameFromContext();
 
-    Driver driver = repository.findById(id)
-        .filter(d -> !Integer.valueOf(2).equals(d.getStatus()))
-        .orElseThrow(() -> new ResourceNotFoundException("Conductor no encontrado"));
+    Driver driver = findOrThrow(id);
 
     driver.setStatus(request.getStatus());
     driver.setUpdatedBy(username);
@@ -119,7 +112,7 @@ public class DriverServiceImpl implements DriverService {
 
   @Override
   public ApiResponse<List<DriverVehicleResponse>> findVehicles(Long driverId) {
-    requireDriver(driverId);
+    findOrThrow(driverId);
     List<DriverVehicle> vehicles = vehicleRepository.findByDriverIdAndDeletedAtIsNull(driverId);
     return new ApiResponse<>("Placas listadas correctamente",
         mapper.toVehicleResponseList(vehicles));
@@ -128,7 +121,7 @@ public class DriverServiceImpl implements DriverService {
   @Override
   public ApiResponse<DriverVehicleResponse> addVehicle(Long driverId, DriverVehicleRequest request) {
     String username = JwtUtils.extractUsernameFromContext();
-    Driver driver = requireDriver(driverId);
+    Driver driver = findOrThrow(driverId);
 
     DriverVehicle vehicle = new DriverVehicle();
     vehicle.setDriver(driver);
@@ -170,9 +163,9 @@ public class DriverServiceImpl implements DriverService {
     return new ApiResponse<>("Placa eliminada correctamente", null);
   }
 
-  private Driver requireDriver(Long driverId) {
-    return repository.findById(driverId)
-        .filter(d -> !Integer.valueOf(2).equals(d.getStatus()))
+  private Driver findOrThrow(Long id) {
+    Long companyId = TenantContext.getCurrentCompanyId();
+    return repository.findByIdAndCompany_IdAndStatusNot(id, companyId, 2)
         .orElseThrow(() -> new ResourceNotFoundException("Conductor no encontrado"));
   }
 }

@@ -1,5 +1,6 @@
 package com.api.multiempresa.dto.response;
 
+import com.api.multiempresa.dto.response.TransferReasonResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ public class RemissionGuideResponse {
   private LocalDateTime issueDate;
   private LocalDate transferDate;
 
-  private String transferReason;
+  private TransferReasonResponse transferReason;
   private String transferReasonDescription;
   private String transportMode;
 

@@ -55,6 +55,8 @@ public class AuthService {
     response.setId(user.getId());
     response.setDocumentType(user.getDocumentType().getName());
     response.setDocumentNumber(user.getDocumentNumber());
+    response.setProfileId(user.getProfile().getId());
+    response.setProfileCode(user.getProfile().getCode());
     response.setProfile(user.getProfile().getName());
     response.setFirstName(user.getFirstName());
     response.setLastName(user.getLastName());

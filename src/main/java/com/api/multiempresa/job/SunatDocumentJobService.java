@@ -602,7 +602,7 @@ public class SunatDocumentJobService {
     guia.setGuiaPuntoLlegadaDireccion(guide.getDestinationAddress());
     guia.setGuiaUbigeoLlegada(guide.getDestinationUbigeo());
     guia.setGuiaCodigoLocalLlegada(guide.getDestinationLocalCode());
-    guia.setMotivoTraslado(guide.getTransferReason());
+    guia.setMotivoTraslado(resolveTransferReasonEnumName(guide.getTransferReason().getCode()));
     guia.setGuiaMotivoTrasladoDescripcion(guide.getTransferReasonDescription());
     guia.setTipoTransporte(guide.getTransportMode());
     guia.setGuiaTrasladoVehiculoMenores(guide.getMinorVehicleTransfer());
@@ -780,6 +780,29 @@ public class SunatDocumentJobService {
       case "CDIP", "A" -> "A";
       case "B" -> "B";
       default -> tipoDoc;
+    };
+  }
+
+  /**
+   * Maps SUNAT Catalog 20 code to the enum name used by the billing service.
+   */
+  private String resolveTransferReasonEnumName(String code) {
+    return switch (code) {
+      case "01" -> "VENTA";
+      case "02" -> "COMPRA";
+      case "03" -> "VENTA_ENTREGA_TERCEROS";
+      case "04" -> "TRASLADO_EMPRESA";
+      case "05" -> "CONSIGNACION";
+      case "06" -> "DEVOLUCION";
+      case "07" -> "TRASLADO_TRANSFORMACION";
+      case "08" -> "RECOJO_BIENES_TRANSFORMADOS";
+      case "09" -> "TRASLADO_ITINERANTE";
+      case "13" -> "OTROS";
+      case "14" -> "VENTA_CONFIRMACION";
+      case "17" -> "EXPORTACION";
+      case "18" -> "IMPORTACION";
+      case "19" -> "TRASLADO_ZONA_PRIMARIA";
+      default -> throw new IllegalArgumentException("Código Catálogo 20 inválido: " + code);
     };
   }
 

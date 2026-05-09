@@ -26,7 +26,7 @@ public class CreditDebitNoteType {
 
   /** Código SUNAT: C01, C06, D01, D02, etc. */
   @Id
-  @Column(length = 3)
+  @Column(length = 4)
   private String code;
 
   @Column(length = 150, nullable = false)

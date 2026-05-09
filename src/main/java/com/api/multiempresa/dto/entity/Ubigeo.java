@@ -27,8 +27,8 @@ public class Ubigeo {
   @Column(length = 50)
   private String province;
 
-  @Column(length = 50)
-  private String distrit;
+  @Column(name = "district", length = 50)
+  private String district;
 
   @Column(nullable = false)
   private Integer status;

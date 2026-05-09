@@ -18,5 +18,5 @@ public class UbigeoRequest {
   private String province;
 
   @Size(max = 50)
-  private String distrit;
+  private String district;
 }

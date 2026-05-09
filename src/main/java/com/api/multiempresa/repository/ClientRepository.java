@@ -3,6 +3,7 @@ package com.api.multiempresa.repository;
 import com.api.multiempresa.dto.entity.Client;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -20,6 +21,8 @@ public interface ClientRepository
   })
   @NullMarked
   List<Client> findAll(Specification<Client> spec);
+
+  Optional<Client> findByIdAndCompany_IdAndDeletedAtIsNull(Long id, Long companyId);
 
   boolean existsByDocumentTypeIdAndDocumentNumberAndDeletedAtIsNull(
       Long documentTypeId, String documentNumber);

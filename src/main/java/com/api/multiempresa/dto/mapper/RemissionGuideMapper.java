@@ -12,7 +12,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring",
-    uses = {ClientMapper.class, ClientAddressMapper.class, CarrierMapper.class, DriverMapper.class})
+    uses = {ClientMapper.class, ClientAddressMapper.class, CarrierMapper.class, DriverMapper.class, TransferReasonMapper.class})
 public interface RemissionGuideMapper {
 
   @Mapping(target = "documentSeriesId", source = "documentSeries.id")

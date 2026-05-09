@@ -35,8 +35,8 @@ public class RemissionGuideSpecification {
         predicates.add(cb.equal(root.get("status"), filter.getStatus()));
       }
 
-      if (filter.getTransferReason() != null && !filter.getTransferReason().isBlank()) {
-        predicates.add(cb.equal(root.get("transferReason"), filter.getTransferReason()));
+      if (filter.getTransferReasonId() != null) {
+        predicates.add(cb.equal(root.get("transferReason").get("id"), filter.getTransferReasonId()));
       }
 
       if (filter.getTransportMode() != null && !filter.getTransportMode().isBlank()) {

@@ -150,7 +150,7 @@ public class SunatDocumentListServiceImpl implements SunatDocumentListService {
         .pdfUrl(guide.getPdfUrl())
         .xmlUrl(guide.getXmlUrl())
         .cdrUrl(guide.getCdrUrl())
-        .transferReason(guide.getTransferReason())
+        .transferReason(guide.getTransferReason().getName())
         .transferDate(guide.getTransferDate())
         .transportMode(guide.getTransportMode())
         .build();

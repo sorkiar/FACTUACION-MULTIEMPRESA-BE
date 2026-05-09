@@ -30,7 +30,7 @@ public class RemissionGuideController {
       @RequestParam(required = false) Long id,
       @RequestParam(required = false) String series,
       @RequestParam(required = false) String status,
-      @RequestParam(required = false) String transferReason,
+      @RequestParam(required = false) Long transferReasonId,
       @RequestParam(required = false) String transportMode,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
@@ -39,7 +39,7 @@ public class RemissionGuideController {
     filter.setId(id);
     filter.setSeries(series);
     filter.setStatus(status);
-    filter.setTransferReason(transferReason);
+    filter.setTransferReasonId(transferReasonId);
     filter.setTransportMode(transportMode);
     filter.setStartDate(startDate);
     filter.setEndDate(endDate);

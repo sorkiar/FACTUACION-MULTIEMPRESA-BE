@@ -16,14 +16,11 @@ public class RemissionGuideRequest {
   @NotNull(message = "transferDate es obligatorio")
   private LocalDate transferDate;
 
-  /**
-   * Catálogo 20 SUNAT: VENTA, COMPRA, TRASLADO_EMPRESA, OTROS, EXPORTACION,
-   * TRASLADO_ITINERANTE, etc.
-   */
-  @NotBlank(message = "transferReason es obligatorio")
-  private String transferReason;
+  /** ID of the Catalog 20 SUNAT transfer reason (transfer_reason table). */
+  @NotNull(message = "transferReasonId es obligatorio")
+  private Long transferReasonId;
 
-  /** Descripción libre. Obligatoria cuando transferReason = OTROS. */
+  /** Free-text description. Required when transferReason.code = "13" (Otros). */
   private String transferReasonDescription;
 
   /**

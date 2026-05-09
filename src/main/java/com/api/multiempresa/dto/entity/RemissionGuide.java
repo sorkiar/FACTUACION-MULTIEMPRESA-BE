@@ -65,9 +65,10 @@ public class RemissionGuide {
   @Column(name = "transfer_date", nullable = false)
   private LocalDate transferDate;
 
-  /** Catálogo 20 SUNAT: VENTA, COMPRA, TRASLADO_EMPRESA, OTROS, EXPORTACION, etc. */
-  @Column(name = "transfer_reason", length = 30, nullable = false)
-  private String transferReason;
+  /** Catálogo 20 SUNAT — FK to transfer_reason table */
+  @ManyToOne
+  @JoinColumn(name = "transfer_reason_id")
+  private TransferReason transferReason;
 
   /** Descripción libre, obligatoria cuando transferReason = OTROS */
   @Column(name = "transfer_reason_description", length = 255)

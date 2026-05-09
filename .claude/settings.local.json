@@ -17,7 +17,10 @@
       "Bash(python:*)",
       "Bash(node -e:*)",
       "Bash(/tmp/GenHash.java:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(Get-Item \"C:\\\\Users\\\\USER\\\\.claude\\\\projects\\\\D--Proyectos-Java-multi-empresa\\\\fe36ada8-aa4c-49d3-810f-245d03222d83.jsonl\")",
+      "Bash(Select-Object Length)",
+      "PowerShell(Get-Item *)"
     ]
   }
 }
