@@ -14,6 +14,7 @@ import com.api.multiempresa.util.GoogleDriveOAuthUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,11 +22,13 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
 
   private final Drive driveService;
 
-  public GoogleDriveServiceImpl() throws Exception {
+  public GoogleDriveServiceImpl(
+      @Value("${google.drive.tokens-directory:tokens}") String tokensDirectory
+  ) throws Exception {
     NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 
     Credential credential =
-        GoogleDriveOAuthUtils.getDefaultCredentials(httpTransport);
+        GoogleDriveOAuthUtils.getDefaultCredentials(httpTransport, tokensDirectory);
 
     this.driveService = new Drive.Builder(
         httpTransport,

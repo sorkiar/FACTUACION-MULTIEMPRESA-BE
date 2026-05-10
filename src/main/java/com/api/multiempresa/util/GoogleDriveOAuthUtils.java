@@ -16,20 +16,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
-/**
- * Utilidad OAuth2 para Google Drive.
- * Flujo: OAuth Installed Application
- * - Requiere autorización manual la primera vez
- * - Guarda tokens localmente para reutilización
- */
 public final class GoogleDriveOAuthUtils {
 
   private GoogleDriveOAuthUtils() {
   }
-
-  // =====================================================================================
-  // CONFIGURACIÓN CENTRAL
-  // =====================================================================================
 
   public static final String APPLICATION_NAME = "IDMH Peru - Drive Service";
 
@@ -37,22 +27,12 @@ public final class GoogleDriveOAuthUtils {
 
   private static final List<String> DEFAULT_SCOPES = List.of(DriveScopes.DRIVE_FILE);
 
-  // =====================================================================================
-  // API PRINCIPAL
-  // =====================================================================================
-
-  public static Credential getDefaultCredentials(NetHttpTransport httpTransport) throws Exception {
-    return getCredentials(
-        httpTransport,
-        "/client_secret.json",
-        "tokens",
-        8888
-    );
+  public static Credential getDefaultCredentials(
+      NetHttpTransport httpTransport,
+      String tokensDirectory
+  ) throws Exception {
+    return getCredentials(httpTransport, "/client_secret.json", tokensDirectory, 8888);
   }
-
-  // =====================================================================================
-  // CORE OAUTH
-  // =====================================================================================
 
   private static Credential getCredentials(
       NetHttpTransport httpTransport,
@@ -81,7 +61,7 @@ public final class GoogleDriveOAuthUtils {
             httpTransport,
             JSON_FACTORY,
             clientSecrets,
-            GoogleDriveOAuthUtils.DEFAULT_SCOPES
+            DEFAULT_SCOPES
         )
             .setDataStoreFactory(
                 new FileDataStoreFactory(new File(tokensDirectory))
@@ -95,10 +75,6 @@ public final class GoogleDriveOAuthUtils {
     return new AuthorizationCodeInstalledApp(flow, receiver)
         .authorize("user");
   }
-
-  // =====================================================================================
-  // HELPERS
-  // =====================================================================================
 
   private static LocalServerReceiver buildReceiver(Integer port) {
     if (port == null) return new LocalServerReceiver();

@@ -51,6 +51,10 @@ sunat:
   url-guia: https://e-fact.facturacion-idmhperu.website/facturador/sunat/guia/sent
   url-guia-valid: https://e-fact.facturacion-idmhperu.website/facturador/sunat/guia/valid
 
+google:
+  drive:
+    tokens-directory: /opt/multi-empresa/tokens
+
 drive:
   folder-id:
     boletas: 1SqIv1mT_aDgGVno06mnG1ETbIJlPJIOy

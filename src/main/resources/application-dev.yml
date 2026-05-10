@@ -44,7 +44,7 @@ jwt:
 
 custom:
   server:
-    hostname: http://localhost:8091
+    hostname: https://api-dev.facturador.website
 
 sunat:
   url: https://e-fact.facturacion-idmhperu.website/facturador/sunat/comprobante/sent

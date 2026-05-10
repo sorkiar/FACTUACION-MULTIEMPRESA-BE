@@ -1,8 +1,8 @@
 package com.api.multiempresa.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.api.multiempresa.dto.response.ApiResponse;
 import com.api.multiempresa.security.JwtAuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,10 +40,10 @@ public class SecurityConfig {
   private final List<String> allowedOrigins = List.of(
       "http://localhost:4200",
       "http://localhost:8090",
-      "https://api-test.facturacion-idmhperu.website",
-      "https://api.facturacion-idmhperu.website",
-      "https://dev.facturacion-idmhperu.website",
-      "https://facturacion-idmhperu.website"
+      "https://api-dev.facturador.website",
+      "https://api.facturador.website",
+      "https://dev.facturador.website",
+      "https://facturador.website"
   );
 
   @Bean
