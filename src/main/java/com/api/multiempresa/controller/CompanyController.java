@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,7 +35,7 @@ public class CompanyController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<CompanyResponse>> create(
       @Valid @ModelAttribute CompanyRequest request,
-      @RequestParam(required = false) MultipartFile pfxFile,
+      @RequestPart(value = "pfxFile", required = false) MultipartFile pfxFile,
       @RequestParam(required = false) String pfxPassword) {
     return ResponseEntity.ok(companyService.create(request, pfxFile, pfxPassword));
   }
@@ -43,7 +44,7 @@ public class CompanyController {
   public ResponseEntity<ApiResponse<CompanyResponse>> update(
       @PathVariable Long id,
       @Valid @ModelAttribute CompanyRequest request,
-      @RequestParam(required = false) MultipartFile pfxFile,
+      @RequestPart(value = "pfxFile", required = false) MultipartFile pfxFile,
       @RequestParam(required = false) String pfxPassword) {
     return ResponseEntity.ok(companyService.update(id, request, pfxFile, pfxPassword));
   }

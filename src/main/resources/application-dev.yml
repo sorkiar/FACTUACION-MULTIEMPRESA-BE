@@ -37,6 +37,9 @@ spring:
 
 server:
   port: 8092
+  tomcat:
+    max-http-form-post-size: -1
+    max-part-count: -1
 
 jwt:
   secret:
@@ -50,6 +53,10 @@ sunat:
   url: https://e-fact.facturacion-idmhperu.website/facturador/sunat/comprobante/sent
   url-guia: https://e-fact.facturacion-idmhperu.website/facturador/sunat/guia/sent
   url-guia-valid: https://e-fact.facturacion-idmhperu.website/facturador/sunat/guia/valid
+
+google:
+  drive:
+    tokens-directory: ${GOOGLE_TOKENS_DIR:tokens}
 
 drive:
   folder-id:

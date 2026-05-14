@@ -20,7 +20,14 @@
       "Bash(xargs:*)",
       "Bash(Get-Item \"C:\\\\Users\\\\USER\\\\.claude\\\\projects\\\\D--Proyectos-Java-multi-empresa\\\\fe36ada8-aa4c-49d3-810f-245d03222d83.jsonl\")",
       "Bash(Select-Object Length)",
-      "PowerShell(Get-Item *)"
+      "PowerShell(Get-Item *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(jar tf *)",
+      "Bash(jar xf *)",
+      "Bash(javap -c -p org/apache/catalina/connector/Request.class)",
+      "Bash(mkdir -p /tmp/tomcat11)",
+      "Bash(javap -verbose -p org/apache/catalina/connector/Request.class)",
+      "Bash(javap -p org/springframework/boot/tomcat/autoconfigure/TomcatServerProperties.class)"
     ]
   }
 }

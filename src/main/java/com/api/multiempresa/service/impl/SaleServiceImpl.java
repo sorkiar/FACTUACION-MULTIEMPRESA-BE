@@ -33,6 +33,7 @@ import com.api.multiempresa.dto.entity.SaleRelatedGuide;
 import com.api.multiempresa.repository.SaleInstallmentRepository;
 import com.api.multiempresa.repository.SaleItemRepository;
 import com.api.multiempresa.repository.SalePaymentRepository;
+import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.SaleRelatedGuideRepository;
 import com.api.multiempresa.repository.SaleRepository;
 import com.api.multiempresa.repository.ServiceRepository;
@@ -42,6 +43,7 @@ import com.api.multiempresa.service.DocumentPdfService;
 import com.api.multiempresa.service.GoogleDriveService;
 import com.api.multiempresa.service.SaleService;
 import com.api.multiempresa.util.JwtUtils;
+import com.api.multiempresa.util.TenantContext;
 import jakarta.transaction.Transactional;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -74,6 +76,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class SaleServiceImpl implements SaleService {
 
+  private final CompanyRepository companyRepository;
   private final SaleRepository saleRepository;
   private final SaleItemRepository saleItemRepository;
   private final SaleInstallmentRepository saleInstallmentRepository;
@@ -118,9 +121,11 @@ public class SaleServiceImpl implements SaleService {
       MultiValueMap<String, MultipartFile> paymentProofs
   ) {
 
+    Long companyId = TenantContext.getCurrentCompanyId();
     String username = JwtUtils.extractUsernameFromContext();
 
     Sale sale = new Sale();
+    sale.setCompany(companyRepository.getReferenceById(companyId));
     sale.setCurrencyCode(resolveCurrencyCode(request.getCurrencyCode()));
     sale.setTaxPercentage(new BigDecimal("18"));
     sale.setCreatedBy(username);

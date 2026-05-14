@@ -3,6 +3,7 @@ package com.api.multiempresa.exception;
 import com.api.multiempresa.dto.response.ApiResponse;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -10,12 +11,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 /**
  * Global exception handler for the application.
  * This class handles exceptions thrown by the application and returns a standardized response.
  */
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
   /**
    * Handles MissingServletRequestParameterException, which occurs when a required request parameter is
@@ -74,6 +78,22 @@ public class GlobalExceptionHandler {
    * @param ex the exception that was thrown
    * @return a ResponseEntity containing an ApiResponse with the validation error messages
    */
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<ApiResponse<Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+    log.warn("Upload size exceeded: {}", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ApiResponse<>("El archivo supera el tamaño máximo permitido", null));
+  }
+
+  @ExceptionHandler(MultipartException.class)
+  public ResponseEntity<ApiResponse<Object>> handleMultipart(MultipartException ex) {
+    Throwable cause = ex.getCause();
+    String detail = cause != null ? cause.getMessage() : ex.getMessage();
+    log.error("Failed to parse multipart request. Cause: {}", detail, ex);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ApiResponse<>("Error al procesar la solicitud multipart: " + detail, null));
+  }
+
   @ExceptionHandler({RuntimeException.class})
   public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex) {
     ApiResponse<Object> response = new ApiResponse<>(
