@@ -464,6 +464,7 @@ public class SaleServiceImpl implements SaleService {
 
     Document document = new Document();
     document.setSale(sale);
+    document.setCompany(sale.getCompany());
     document.setDocumentSeries(series);
     document.setDocumentTypeSunat(series.getDocumentTypeSunat());
     document.setSeries(series.getSeries());

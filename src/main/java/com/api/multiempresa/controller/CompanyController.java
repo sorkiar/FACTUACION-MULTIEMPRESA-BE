@@ -35,18 +35,20 @@ public class CompanyController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<CompanyResponse>> create(
       @Valid @ModelAttribute CompanyRequest request,
+      @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
       @RequestPart(value = "pfxFile", required = false) MultipartFile pfxFile,
       @RequestParam(required = false) String pfxPassword) {
-    return ResponseEntity.ok(companyService.create(request, pfxFile, pfxPassword));
+    return ResponseEntity.ok(companyService.create(request, logoFile, pfxFile, pfxPassword));
   }
 
   @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<CompanyResponse>> update(
       @PathVariable Long id,
       @Valid @ModelAttribute CompanyRequest request,
+      @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
       @RequestPart(value = "pfxFile", required = false) MultipartFile pfxFile,
       @RequestParam(required = false) String pfxPassword) {
-    return ResponseEntity.ok(companyService.update(id, request, pfxFile, pfxPassword));
+    return ResponseEntity.ok(companyService.update(id, request, logoFile, pfxFile, pfxPassword));
   }
 
   @GetMapping("/{id}")

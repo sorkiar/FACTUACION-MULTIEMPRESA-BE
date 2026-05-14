@@ -9,9 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface CompanyService {
 
-  ApiResponse<CompanyResponse> create(CompanyRequest request, MultipartFile pfxFile, String pfxPassword);
+  ApiResponse<CompanyResponse> create(CompanyRequest request, MultipartFile logoFile, MultipartFile pfxFile, String pfxPassword);
 
-  ApiResponse<CompanyResponse> update(Long id, CompanyRequest request, MultipartFile pfxFile, String pfxPassword);
+  ApiResponse<CompanyResponse> update(Long id, CompanyRequest request, MultipartFile logoFile, MultipartFile pfxFile, String pfxPassword);
 
   ApiResponse<CompanyResponse> findById(Long id);
 

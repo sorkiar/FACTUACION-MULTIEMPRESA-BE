@@ -176,7 +176,7 @@ public class SunatDocumentJobService {
             restTemplate.exchange(sunatUrl, HttpMethod.POST, entity, FacturacionResponse.class);
 
         processResponse(doc, response);
-        saveLog("job-system", doc.getDocumentTypeSunat().getCode(),
+        saveLog(doc.getCompany(), "job-system", doc.getDocumentTypeSunat().getCode(),
             doc.getSeries(), doc.getSequence(),
             requestJson, serializeJson(response.getBody()),
             response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()
@@ -224,7 +224,7 @@ public class SunatDocumentJobService {
             restTemplate.exchange(sunatUrl, HttpMethod.POST, entity, FacturacionResponse.class);
 
         processNoteResponse(note, response);
-        saveLog("job-system", note.getDocumentTypeSunat().getCode(),
+        saveLog(note.getCompany(), "job-system", note.getDocumentTypeSunat().getCode(),
             note.getSeries(), note.getSequence(),
             requestJson, serializeJson(response.getBody()),
             response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()
@@ -406,7 +406,7 @@ public class SunatDocumentJobService {
           sunatUrl, HttpMethod.POST, new HttpEntity<>(request, headers),
           FacturacionResponse.class);
       processResponse(doc, response);
-      saveLog("manual-resend", doc.getDocumentTypeSunat().getCode(),
+      saveLog(doc.getCompany(), "manual-resend", doc.getDocumentTypeSunat().getCode(),
           doc.getSeries(), doc.getSequence(),
           requestJson, serializeJson(response.getBody()),
           response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()
@@ -437,7 +437,7 @@ public class SunatDocumentJobService {
           sunatUrl, HttpMethod.POST, new HttpEntity<>(request, headers),
           FacturacionResponse.class);
       processNoteResponse(note, response);
-      saveLog("manual-resend", note.getDocumentTypeSunat().getCode(),
+      saveLog(note.getCompany(), "manual-resend", note.getDocumentTypeSunat().getCode(),
           note.getSeries(), note.getSequence(),
           requestJson, serializeJson(response.getBody()),
           response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()
@@ -470,7 +470,7 @@ public class SunatDocumentJobService {
           sunatGuiaUrl, HttpMethod.POST, new HttpEntity<>(request, headers),
           FacturacionResponse.class);
       processGuideResponse(guide, response);
-      saveLog("manual-resend", "09",
+      saveLog(guide.getCompany(), "manual-resend", "09",
           guide.getSeries(), guide.getSequence(),
           requestJson, serializeJson(response.getBody()),
           response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()
@@ -523,7 +523,7 @@ public class SunatDocumentJobService {
             restTemplate.exchange(sunatGuiaUrl, HttpMethod.POST, entity, FacturacionResponse.class);
 
         processGuideResponse(guide, response);
-        saveLog("job-system", "09",
+        saveLog(guide.getCompany(), "job-system", "09",
             guide.getSeries(), guide.getSequence(),
             requestJson, serializeJson(response.getBody()),
             response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()
@@ -746,11 +746,12 @@ public class SunatDocumentJobService {
     }
   }
 
-  private void saveLog(String triggeredBy, String documentType, String series, String sequence,
+  private void saveLog(Company company, String triggeredBy, String documentType, String series, String sequence,
                        String requestJson, String responseJson, int httpStatus,
                        boolean success, LocalDateTime sentAt) {
     try {
       SunatRequestLog entry = new SunatRequestLog();
+      entry.setCompany(company);
       entry.setTriggeredBy(triggeredBy);
       entry.setDocumentType(documentType);
       entry.setSeries(series);
@@ -1188,7 +1189,7 @@ public class SunatDocumentJobService {
             restTemplate.exchange(sunatGuiaValidUrl, HttpMethod.POST, entity, FacturacionResponse.class);
 
         processGuideResponse(guide, response);
-        saveLog("job-ticket", "09",
+        saveLog(guide.getCompany(), "job-ticket", "09",
             guide.getSeries(), guide.getSequence(),
             requestJson, serializeJson(response.getBody()),
             response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()
@@ -1241,7 +1242,7 @@ public class SunatDocumentJobService {
         restTemplate.exchange(sunatGuiaValidUrl, HttpMethod.POST, entity, FacturacionResponse.class);
 
     processGuideResponse(guide, response);
-    saveLog("manual-ticket", "09",
+    saveLog(guide.getCompany(), "manual-ticket", "09",
         guide.getSeries(), guide.getSequence(),
         requestJson, serializeJson(response.getBody()),
         response.getStatusCode().value(), response.getStatusCode().is2xxSuccessful()

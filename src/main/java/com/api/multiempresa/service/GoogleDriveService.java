@@ -12,5 +12,7 @@ public interface GoogleDriveService {
 
   String uploadLoginBackgroundImage(File file, String folderId) throws IOException;
 
+  String uploadLogo(File file, String folderId) throws IOException;
+
   byte[] downloadFileById(String fileId) throws IOException;
 }

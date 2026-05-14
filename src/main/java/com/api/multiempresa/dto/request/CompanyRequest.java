@@ -1,15 +1,17 @@
 package com.api.multiempresa.dto.request;
 
+import com.api.multiempresa.validation.ValidCompany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
+@ValidCompany
 public class CompanyRequest {
 
   @NotBlank
-  @Pattern(regexp = "\\d{11}", message = "RUC must be 11 digits")
+  @Pattern(regexp = "\\d{11}", message = "El RUC debe tener exactamente 11 dígitos numéricos")
   private String ruc;
 
   @NotBlank
@@ -19,9 +21,11 @@ public class CompanyRequest {
   @Size(max = 200)
   private String tradeName;
 
+  @NotBlank
   @Size(max = 500)
   private String address;
 
+  @NotBlank
   @Size(max = 10)
   private String ubigeo;
 
@@ -39,6 +43,7 @@ public class CompanyRequest {
 
   // ── SUNAT fields ──────────────────────────────────────────
 
+  @NotBlank
   @Size(max = 10)
   private String sunatEstablishmentCode;
 

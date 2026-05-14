@@ -67,6 +67,11 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
   }
 
   @Override
+  public String uploadLogo(java.io.File file, String folderId) throws IOException {
+    return uploadImageOptimized(file, folderId);
+  }
+
+  @Override
   public byte[] downloadFileById(String fileId) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream);

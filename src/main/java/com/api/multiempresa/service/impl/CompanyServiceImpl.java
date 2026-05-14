@@ -17,10 +17,12 @@ import com.api.multiempresa.repository.MenuRepository;
 import com.api.multiempresa.repository.ProfileRepository;
 import com.api.multiempresa.repository.UserRepository;
 import com.api.multiempresa.service.CompanyService;
+import com.api.multiempresa.service.GoogleDriveService;
 import com.api.multiempresa.util.JwtUtils;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.text.Normalizer;
 import java.util.Base64;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -46,15 +48,22 @@ public class CompanyServiceImpl implements CompanyService {
   private final UserRepository userRepository;
   private final DocumentTypeRepository documentTypeRepository;
   private final PasswordEncoder passwordEncoder;
+  private final GoogleDriveService googleDriveService;
+
+  @org.springframework.beans.factory.annotation.Value("${drive.folder-id.logos}")
+  private String logosFolderId;
 
   @Override
   @Transactional
-  public ApiResponse<CompanyResponse> create(CompanyRequest request, MultipartFile pfxFile, String pfxPassword) {
+  public ApiResponse<CompanyResponse> create(CompanyRequest request, MultipartFile logoFile,
+      MultipartFile pfxFile, String pfxPassword) {
     if (companyRepository.existsByRucAndDeletedAtIsNull(request.getRuc())) {
       throw new BusinessValidationException("Ya existe una empresa registrada con ese RUC");
     }
 
+    normalizeUbigeoFields(request);
     Company company = companyMapper.toEntity(request);
+    applyLogoIfProvided(company, logoFile, request.getRuc());
     company.setCreatedBy(JwtUtils.extractUsernameFromContext());
     applyPfxIfProvided(company, pfxFile, pfxPassword);
     companyRepository.save(company);
@@ -64,17 +73,52 @@ public class CompanyServiceImpl implements CompanyService {
 
   @Override
   @Transactional
-  public ApiResponse<CompanyResponse> update(Long id, CompanyRequest request, MultipartFile pfxFile, String pfxPassword) {
+  public ApiResponse<CompanyResponse> update(Long id, CompanyRequest request, MultipartFile logoFile,
+      MultipartFile pfxFile, String pfxPassword) {
     Company company = findCompanyOrThrow(id);
 
     if (companyRepository.existsByRucAndDeletedAtIsNullAndIdNot(request.getRuc(), id)) {
       throw new BusinessValidationException("Ya existe otra empresa registrada con ese RUC");
     }
 
+    normalizeUbigeoFields(request);
     companyMapper.updateEntity(request, company);
+    applyLogoIfProvided(company, logoFile, request.getRuc());
     company.setUpdatedBy(JwtUtils.extractUsernameFromContext());
     applyPfxIfProvided(company, pfxFile, pfxPassword);
     return new ApiResponse<>("Empresa actualizada", companyMapper.toResponse(company));
+  }
+
+  private void applyLogoIfProvided(Company company, MultipartFile logoFile, String ruc) {
+    if (logoFile == null || logoFile.isEmpty()) return;
+    try {
+      String originalName = logoFile.getOriginalFilename();
+      String ext = (originalName != null && originalName.contains("."))
+          ? originalName.substring(originalName.lastIndexOf('.'))
+          : ".png";
+      java.io.File tempFile = java.io.File.createTempFile("logo-" + ruc + "-", ext);
+      logoFile.transferTo(tempFile);
+      java.io.File namedFile = new java.io.File(
+          tempFile.getParent(), "logo-" + ruc + ext);
+      tempFile.renameTo(namedFile);
+      String url = googleDriveService.uploadLogo(namedFile, logosFolderId);
+      namedFile.delete();
+      company.setLogoUrl(url);
+    } catch (Exception e) {
+      log.warn("No se pudo subir el logo de la empresa {}: {}", ruc, e.getMessage());
+    }
+  }
+
+  private void normalizeUbigeoFields(CompanyRequest request) {
+    request.setUbigDepartment(toUpperCaseNoAccents(request.getUbigDepartment()));
+    request.setUbigProvince(toUpperCaseNoAccents(request.getUbigProvince()));
+    request.setUbigDistrict(toUpperCaseNoAccents(request.getUbigDistrict()));
+  }
+
+  private String toUpperCaseNoAccents(String value) {
+    if (value == null || value.isBlank()) return value;
+    String normalized = Normalizer.normalize(value.toUpperCase(), Normalizer.Form.NFD);
+    return normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
   }
 
   @Override

@@ -27,7 +27,9 @@
       "Bash(javap -c -p org/apache/catalina/connector/Request.class)",
       "Bash(mkdir -p /tmp/tomcat11)",
       "Bash(javap -verbose -p org/apache/catalina/connector/Request.class)",
-      "Bash(javap -p org/springframework/boot/tomcat/autoconfigure/TomcatServerProperties.class)"
+      "Bash(javap -p org/springframework/boot/tomcat/autoconfigure/TomcatServerProperties.class)",
+      "Bash(Rename-Item *)",
+      "PowerShell(Rename-Item *)"
     ]
   }
 }

@@ -1,6 +1,7 @@
 package com.api.multiempresa.service.impl;
 
 import com.api.multiempresa.dto.entity.Client;
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.Document;
 import com.api.multiempresa.dto.entity.Sale;
 import com.api.multiempresa.dto.entity.SaleInstallment;
@@ -40,9 +41,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentPdfServiceImpl implements DocumentPdfService {
@@ -77,7 +80,17 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
       // Construir datos del reporte
       // ================================
 
-      Map<String, String> config = configurationService.getGroup("empresa_emisora");
+      Map<String, String> config = new java.util.HashMap<>(
+          configurationService.getGroup("empresa_emisora"));
+      Company company = document.getCompany();
+      if (company != null) {
+        config.put("emprRuc", company.getRuc());
+        config.put("emprRazonSocial", company.getBusinessName());
+        config.put("emprNombreComercial", company.getTradeName());
+        config.put("emprDireccionFiscal", company.getAddress());
+        config.put("emprTelefono", company.getPhone());
+        config.put("emprPaginaWeb", company.getWebsite());
+      }
 
       List<Map<String, Object>> dataList = new ArrayList<>();
 
@@ -239,8 +252,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
 
       Map<String, Object> parameters = new HashMap<>();
 
-      parameters.put("urlImagen",
-          Objects.requireNonNull(getClass().getResource("/img/logo.png")).toString());
+      parameters.put("urlImagen", resolveLogoUrl(company));
       parameters.put("cuotas_texto", cuotasTexto);
       parameters.put("guias_relacionadas", guiasTexto);
       parameters.put("orden_compra", sale.getPurchaseOrder());
@@ -363,6 +375,27 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
     }
 
     return "";
+  }
+
+  private String resolveLogoUrl(Company company) {
+    String defaultLogo = Objects.requireNonNull(
+        getClass().getResource("/img/logo.png")).toString();
+    if (company == null || company.getLogoUrl() == null || company.getLogoUrl().isBlank()) {
+      return defaultLogo;
+    }
+    try {
+      String logoUrl = company.getLogoUrl();
+      String fileId = logoUrl.substring(logoUrl.lastIndexOf('/') + 1);
+      byte[] bytes = googleDriveService.downloadFileById(fileId);
+      java.io.File tempFile = java.io.File.createTempFile("logo-", ".png");
+      java.nio.file.Files.write(tempFile.toPath(), bytes);
+      tempFile.deleteOnExit();
+      return tempFile.toURI().toString();
+    } catch (Exception e) {
+      log.warn("No se pudo descargar el logo de la empresa {}, usando logo por defecto: {}",
+          company.getRuc(), e.getMessage());
+      return defaultLogo;
+    }
   }
 
   private String buildQrString(Document document, Sale sale, String companyRuc) {
