@@ -7,6 +7,7 @@ public class DocumentSeriesResponse {
   private Long id;
   private String documentTypeSunatCode;
   private String documentTypeSunatName;
+  private String parentDocumentTypeCode;
   private String series;
   private Integer sequence;
   private Integer status;

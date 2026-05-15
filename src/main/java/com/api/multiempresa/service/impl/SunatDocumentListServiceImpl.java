@@ -8,6 +8,7 @@ import com.api.multiempresa.repository.CreditDebitNoteRepository;
 import com.api.multiempresa.repository.DocumentRepository;
 import com.api.multiempresa.repository.RemissionGuideRepository;
 import com.api.multiempresa.service.SunatDocumentListService;
+import com.api.multiempresa.util.TenantContext;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -27,24 +28,39 @@ public class SunatDocumentListServiceImpl implements SunatDocumentListService {
   @Transactional(readOnly = true)
   public List<SunatDocumentSummaryResponse> listAll(String status) {
 
+    Long companyId = TenantContext.getCurrentCompanyId();
+    boolean hasStatus = status != null && !status.isBlank();
     List<SunatDocumentSummaryResponse> result = new ArrayList<>();
 
     // Facturas y boletas
-    List<Document> docs = (status != null && !status.isBlank())
-        ? documentRepository.findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(status)
-        : documentRepository.findByDeletedAtIsNullOrderByIssueDateDesc();
+    List<Document> docs;
+    List<CreditDebitNote> notes;
+    List<RemissionGuide> guides;
+
+    if (companyId != null) {
+      docs = hasStatus
+          ? documentRepository.findByCompany_IdAndStatusAndDeletedAtIsNullOrderByIssueDateDesc(companyId, status)
+          : documentRepository.findByCompany_IdAndDeletedAtIsNullOrderByIssueDateDesc(companyId);
+      notes = hasStatus
+          ? creditDebitNoteRepository.findByCompany_IdAndStatusAndDeletedAtIsNullOrderByIssueDateDesc(companyId, status)
+          : creditDebitNoteRepository.findByCompany_IdAndDeletedAtIsNullOrderByIssueDateDesc(companyId);
+      guides = hasStatus
+          ? remissionGuideRepository.findByCompany_IdAndStatusAndDeletedAtIsNullOrderByIssueDateDesc(companyId, status)
+          : remissionGuideRepository.findByCompany_IdAndDeletedAtIsNullOrderByIssueDateDesc(companyId);
+    } else {
+      docs = hasStatus
+          ? documentRepository.findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(status)
+          : documentRepository.findByDeletedAtIsNullOrderByIssueDateDesc();
+      notes = hasStatus
+          ? creditDebitNoteRepository.findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(status)
+          : creditDebitNoteRepository.findByDeletedAtIsNullOrderByIssueDateDesc();
+      guides = hasStatus
+          ? remissionGuideRepository.findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(status)
+          : remissionGuideRepository.findByDeletedAtIsNullOrderByIssueDateDesc();
+    }
+
     docs.forEach(doc -> result.add(fromDocument(doc)));
-
-    // Notas de crédito / débito
-    List<CreditDebitNote> notes = (status != null && !status.isBlank())
-        ? creditDebitNoteRepository.findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(status)
-        : creditDebitNoteRepository.findByDeletedAtIsNullOrderByIssueDateDesc();
     notes.forEach(note -> result.add(fromNote(note)));
-
-    // Guías de remisión
-    List<RemissionGuide> guides = (status != null && !status.isBlank())
-        ? remissionGuideRepository.findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(status)
-        : remissionGuideRepository.findByDeletedAtIsNullOrderByIssueDateDesc();
     guides.forEach(guide -> result.add(fromGuide(guide)));
 
     result.sort(Comparator.comparing(

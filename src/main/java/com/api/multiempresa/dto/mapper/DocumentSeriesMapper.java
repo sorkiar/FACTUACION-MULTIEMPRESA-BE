@@ -11,5 +11,6 @@ public interface DocumentSeriesMapper {
   @Mapping(source = "documentTypeSunat.code", target = "documentTypeSunatCode")
   @Mapping(source = "documentTypeSunat.name", target = "documentTypeSunatName")
   @Mapping(source = "currentSequence", target = "sequence")
+  @Mapping(source = "parentDocumentTypeCode", target = "parentDocumentTypeCode")
   DocumentSeriesResponse toResponse(DocumentSeries entity);
 }

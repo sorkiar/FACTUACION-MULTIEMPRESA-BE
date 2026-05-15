@@ -1,15 +1,12 @@
 package com.api.multiempresa.service.impl;
 
-import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.ExchangeRate;
 import com.api.multiempresa.dto.response.ApiResponse;
 import com.api.multiempresa.dto.response.ExchangeRateResponse;
 import com.api.multiempresa.exception.ResourceNotFoundException;
 import com.api.multiempresa.job.ExchangeRateJobService;
-import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.ExchangeRateRepository;
 import com.api.multiempresa.service.ExchangeRateService;
-import com.api.multiempresa.util.TenantContext;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,14 +22,10 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 
   private final ExchangeRateRepository exchangeRateRepository;
   private final ExchangeRateJobService exchangeRateJobService;
-  private final CompanyRepository companyRepository;
 
   @Override
   public ApiResponse<ExchangeRateResponse> findByDate(LocalDate date) {
-    Long companyId = TenantContext.getCompanyId();
-    List<ExchangeRate> rates = (companyId != null)
-        ? exchangeRateRepository.findByDateAndCompanyId(date, companyId)
-        : exchangeRateRepository.findByDate(date);
+    List<ExchangeRate> rates = exchangeRateRepository.findByDate(date);
 
     if (rates.isEmpty()) {
       throw new ResourceNotFoundException(
@@ -62,8 +55,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
       throw new IllegalArgumentException("La fecha inicial no puede ser mayor a la final");
     }
 
-    List<Company> companies = companyRepository.findByDeletedAtIsNull();
-    exchangeRateJobService.fetchAndSaveRange(from, to, companies);
+    exchangeRateJobService.fetchAndSaveRange(from, to);
 
     Map<LocalDate, BigDecimal> purchaseMap = exchangeRateRepository
         .findByDateBetweenAndType(from, to, "C").stream()

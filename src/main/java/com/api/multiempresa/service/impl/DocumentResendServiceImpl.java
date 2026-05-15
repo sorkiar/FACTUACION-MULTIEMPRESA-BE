@@ -14,6 +14,7 @@ import com.api.multiempresa.service.CreditDebitNotePdfService;
 import com.api.multiempresa.service.DocumentPdfService;
 import com.api.multiempresa.service.DocumentResendService;
 import com.api.multiempresa.service.RemissionGuidePdfService;
+import com.api.multiempresa.util.TenantContext;
 import jakarta.transaction.Transactional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,10 @@ public class DocumentResendServiceImpl implements DocumentResendService {
   @Transactional
   public ApiResponse<String> resendDocument(Long id) {
 
-    Document doc = documentRepository.findById(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    Document doc = (companyId != null
+        ? documentRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : documentRepository.findById(id))
         .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado con id: " + id));
 
     if (NO_RESEND_STATUSES.contains(doc.getStatus())) {
@@ -58,7 +62,10 @@ public class DocumentResendServiceImpl implements DocumentResendService {
   @Transactional
   public ApiResponse<String> resendCreditDebitNote(Long id) {
 
-    CreditDebitNote note = creditDebitNoteRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    CreditDebitNote note = (companyId != null
+        ? creditDebitNoteRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : creditDebitNoteRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Nota no encontrada con id: " + id));
 
     if (NO_RESEND_STATUSES.contains(note.getStatus())) {
@@ -79,7 +86,10 @@ public class DocumentResendServiceImpl implements DocumentResendService {
   @Transactional
   public ApiResponse<String> resendRemissionGuide(Long id) {
 
-    RemissionGuide guide = remissionGuideRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    RemissionGuide guide = (companyId != null
+        ? remissionGuideRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : remissionGuideRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Guía de remisión no encontrada con id: " + id));
 
     if (NO_RESEND_STATUSES.contains(guide.getStatus())) {
@@ -100,7 +110,10 @@ public class DocumentResendServiceImpl implements DocumentResendService {
   @Transactional
   public ApiResponse<String> regenerateDocumentPdf(Long id) {
 
-    Document doc = documentRepository.findById(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    Document doc = (companyId != null
+        ? documentRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : documentRepository.findById(id))
         .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado con id: " + id));
 
     documentPdfService.generatePdf(doc.getSale().getId());
@@ -114,7 +127,10 @@ public class DocumentResendServiceImpl implements DocumentResendService {
   @Transactional
   public ApiResponse<String> regenerateCreditDebitNotePdf(Long id) {
 
-    CreditDebitNote note = creditDebitNoteRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    CreditDebitNote note = (companyId != null
+        ? creditDebitNoteRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : creditDebitNoteRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Nota no encontrada con id: " + id));
 
     creditDebitNotePdfService.generatePdf(note.getId());
@@ -128,7 +144,10 @@ public class DocumentResendServiceImpl implements DocumentResendService {
   @Transactional
   public ApiResponse<String> regenerateRemissionGuidePdf(Long id) {
 
-    RemissionGuide guide = remissionGuideRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    RemissionGuide guide = (companyId != null
+        ? remissionGuideRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : remissionGuideRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Guía de remisión no encontrada con id: " + id));
 
     remissionGuidePdfService.generatePdf(guide.getId());

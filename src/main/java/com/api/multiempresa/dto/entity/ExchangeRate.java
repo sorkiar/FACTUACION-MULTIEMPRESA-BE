@@ -5,8 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
@@ -22,8 +20,8 @@ import org.hibernate.annotations.CreationTimestamp;
     name = "exchange_rate",
     uniqueConstraints =
         @UniqueConstraint(
-            name = "uk_exchange_rate_date_type_company",
-            columnNames = {"company_id", "rate_date", "type"}))
+            name = "uk_exchange_rate_date_type",
+            columnNames = {"rate_date", "type"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,10 +30,6 @@ public class ExchangeRate {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
-  @ManyToOne
-  @JoinColumn(name = "company_id", nullable = false)
-  private Company company;
 
   @Column(name = "rate_date", nullable = false)
   private LocalDate date;

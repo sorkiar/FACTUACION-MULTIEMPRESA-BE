@@ -60,6 +60,20 @@ public interface CreditDebitNoteRepository
       "creditDebitNoteType",
       "items",
   })
+  Optional<CreditDebitNote> findByIdAndCompany_IdAndDeletedAtIsNull(Long id, Long companyId);
+
+  @EntityGraph(attributePaths = {
+      "sale",
+      "sale.client",
+      "sale.client.documentType",
+      "sale.client.personType",
+      "originalDocument",
+      "originalDocument.documentTypeSunat",
+      "documentTypeSunat",
+      "documentSeries",
+      "creditDebitNoteType",
+      "items",
+  })
   List<CreditDebitNote> findByStatusAndDocumentTypeSunat_CodeAndDeletedAtIsNull(
       String status, String code);
 
@@ -68,6 +82,12 @@ public interface CreditDebitNoteRepository
 
   @EntityGraph(attributePaths = {"documentTypeSunat", "creditDebitNoteType", "originalDocument"})
   List<CreditDebitNote> findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(String status);
+
+  @EntityGraph(attributePaths = {"documentTypeSunat", "creditDebitNoteType", "originalDocument"})
+  List<CreditDebitNote> findByCompany_IdAndDeletedAtIsNullOrderByIssueDateDesc(Long companyId);
+
+  @EntityGraph(attributePaths = {"documentTypeSunat", "creditDebitNoteType", "originalDocument"})
+  List<CreditDebitNote> findByCompany_IdAndStatusAndDeletedAtIsNullOrderByIssueDateDesc(Long companyId, String status);
 
   boolean existsBySale_IdAndCreditDebitNoteType_CodeAndStatusInAndDeletedAtIsNull(
       Long saleId, String code, Collection<String> statuses);

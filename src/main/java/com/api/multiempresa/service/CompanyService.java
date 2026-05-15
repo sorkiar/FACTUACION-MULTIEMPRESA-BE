@@ -18,4 +18,8 @@ public interface CompanyService {
   ApiResponse<List<CompanyResponse>> findAll();
 
   ApiResponse<Void> updateStatus(Long id, CompanyStatusRequest request);
+
+  ApiResponse<CompanyResponse> findMyCompany();
+
+  ApiResponse<CompanyResponse> updateMyCompany(CompanyRequest request, MultipartFile logoFile, MultipartFile pfxFile, String pfxPassword);
 }

@@ -23,6 +23,7 @@ import com.api.multiempresa.job.SunatDocumentJobService;
 import com.api.multiempresa.repository.CarrierRepository;
 import com.api.multiempresa.repository.ClientAddressRepository;
 import com.api.multiempresa.repository.ClientRepository;
+import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.DocumentSeriesRepository;
 import com.api.multiempresa.repository.DriverRepository;
 import com.api.multiempresa.repository.DriverVehicleRepository;
@@ -35,6 +36,7 @@ import com.api.multiempresa.repository.spec.RemissionGuideSpecification;
 import com.api.multiempresa.service.RemissionGuidePdfService;
 import com.api.multiempresa.service.RemissionGuideService;
 import com.api.multiempresa.util.JwtUtils;
+import com.api.multiempresa.util.TenantContext;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -50,6 +52,7 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
   private final RemissionGuideRepository guideRepository;
   private final RemissionGuideItemRepository itemRepository;
   private final RemissionGuideDriverRepository driverRepository;
+  private final CompanyRepository companyRepository;
   private final DocumentSeriesRepository documentSeriesRepository;
   private final ProductRepository productRepository;
   private final ClientRepository clientRepository;
@@ -72,7 +75,10 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
 
   @Override
   public ApiResponse<RemissionGuideResponse> findById(Long id) {
-    RemissionGuide guide = guideRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    RemissionGuide guide = (companyId != null
+        ? guideRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : guideRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Guía de remisión no encontrada"));
     return new ApiResponse<>("Guía obtenida correctamente", mapper.toResponse(guide));
   }
@@ -81,6 +87,7 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
   @Transactional
   public ApiResponse<RemissionGuideResponse> create(RemissionGuideRequest request) {
 
+    Long companyId = TenantContext.getCurrentCompanyId();
     String username = JwtUtils.extractUsernameFromContext();
 
     // 1. Validaciones de negocio
@@ -98,9 +105,9 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
       }
     }
 
-    // 2. Reservar secuencia en la serie (con lock pesimista)
+    // 2. Reservar secuencia en la serie (con lock pesimista, scoped a la empresa)
     DocumentSeries series = documentSeriesRepository
-        .findActiveByDocumentTypeCodeForUpdate("09", 1)
+        .findActiveByDocumentTypeCodeAndCompanyForUpdate("09", 1, companyId)
         .stream().findFirst()
         .orElseThrow(() -> new ResourceNotFoundException(
             "No se encontró una serie activa para Guía de Remisión (09)"));
@@ -111,6 +118,7 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
 
     // 3. Crear la guía
     RemissionGuide guide = new RemissionGuide();
+    guide.setCompany(companyRepository.getReferenceById(companyId));
     guide.setDocumentSeries(series);
     guide.setSeries(series.getSeries());
     guide.setSequence(String.format("%08d", nextSequence));
@@ -140,8 +148,9 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
     guide.setMinorVehicleTransfer(
         request.getMinorVehicleTransfer() != null && request.getMinorVehicleTransfer());
 
-    // Destinatario (cliente)
-    Client client = clientRepository.findById(request.getClientId())
+    // Destinatario (cliente, scoped a la empresa)
+    Client client = clientRepository.findByIdAndCompany_IdAndDeletedAtIsNull(
+            request.getClientId(), companyId)
         .orElseThrow(() -> new ResourceNotFoundException("Destinatario no encontrado"));
     guide.setClient(client);
 
@@ -157,10 +166,10 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
       guide.setSelectedClientAddress(selectedAddress);
     }
 
-    // Transportista (TRANSPORTE_PUBLICO → master carrier)
+    // Transportista (TRANSPORTE_PUBLICO → master carrier, scoped a la empresa)
     if (request.getCarrierId() != null) {
-      Carrier carrier = carrierRepository.findById(request.getCarrierId())
-          .filter(c -> Integer.valueOf(1).equals(c.getStatus()))
+      Carrier carrier = carrierRepository
+          .findByIdAndCompany_IdAndStatusNot(request.getCarrierId(), companyId, 0)
           .orElseThrow(() -> new ResourceNotFoundException("Transportista no encontrado o inactivo"));
       guide.setCarrier(carrier);
     }
@@ -195,7 +204,8 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
       item.setCreatedBy(username);
 
       if (itemReq.getProductId() != null) {
-        item.setProduct(productRepository.findById(itemReq.getProductId())
+        item.setProduct(productRepository
+            .findByIdAndCompany_IdAndStatusNot(itemReq.getProductId(), companyId, 0)
             .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado")));
       }
 
@@ -205,8 +215,8 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
     // 5. Guardar conductores (TRANSPORTE_PRIVADO → master driver + specific vehicle)
     if (request.getDrivers() != null) {
       for (RemissionGuideDriverRequest driverReq : request.getDrivers()) {
-        Driver driver = driverMasterRepository.findById(driverReq.getDriverId())
-            .filter(d -> Integer.valueOf(1).equals(d.getStatus()))
+        Driver driver = driverMasterRepository
+            .findByIdAndCompany_IdAndStatusNot(driverReq.getDriverId(), companyId, 0)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Conductor no encontrado o inactivo: id=" + driverReq.getDriverId()));
 

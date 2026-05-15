@@ -44,6 +44,8 @@ public interface SaleRepository
   })
   Optional<Sale> findByIdAndDeletedAtIsNull(Long id);
 
+  Optional<Sale> findByIdAndCompany_IdAndDeletedAtIsNull(Long id, Long companyId);
+
   long countBySaleDateBetweenAndDeletedAtIsNull(LocalDateTime start, LocalDateTime end);
 
   @Query("SELECT COALESCE(SUM(s.totalAmount), 0) FROM Sale s " +

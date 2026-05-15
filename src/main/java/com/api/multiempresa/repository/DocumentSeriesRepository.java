@@ -27,6 +27,10 @@ public interface DocumentSeriesRepository
   Optional<DocumentSeries> findByIdForUpdate(@Param("id") Long id);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT ds FROM DocumentSeries ds JOIN FETCH ds.documentTypeSunat WHERE ds.id = :id AND ds.company.id = :companyId")
+  Optional<DocumentSeries> findByIdAndCompanyIdForUpdate(@Param("id") Long id, @Param("companyId") Long companyId);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT ds FROM DocumentSeries ds JOIN FETCH ds.documentTypeSunat WHERE ds.documentTypeSunat.code = :code AND ds.status = :status ORDER BY ds.id ASC")
   List<DocumentSeries> findActiveByDocumentTypeCodeForUpdate(@Param("code") String code, @Param("status") Integer status);
 
@@ -43,6 +47,10 @@ public interface DocumentSeriesRepository
       Long companyId
   );
 
+  @EntityGraph(attributePaths = {"documentTypeSunat"})
+  Optional<DocumentSeries> findFirstByDocumentTypeSunat_CodeAndStatusAndCompany_IdOrderByIdAsc(
+      String code, Integer status, Long companyId);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT ds FROM DocumentSeries ds JOIN FETCH ds.documentTypeSunat WHERE ds.documentTypeSunat.code = :code AND ds.status = :status AND ds.company.id = :companyId ORDER BY ds.id ASC")
   List<DocumentSeries> findActiveByDocumentTypeCodeAndCompanyForUpdate(@Param("code") String code, @Param("status") Integer status, @Param("companyId") Long companyId);
@@ -50,4 +58,15 @@ public interface DocumentSeriesRepository
   @Override
   @EntityGraph(attributePaths = {"documentTypeSunat"})
   Optional<DocumentSeries> findById(Long id);
+
+  @EntityGraph(attributePaths = {"documentTypeSunat"})
+  List<DocumentSeries> findByCompany_IdOrderByDocumentTypeSunat_CodeAscSeriesAsc(Long companyId);
+
+  @EntityGraph(attributePaths = {"documentTypeSunat"})
+  Optional<DocumentSeries> findByIdAndCompany_Id(Long id, Long companyId);
+
+  long countByCompany_IdAndDocumentTypeSunat_CodeAndStatus(Long companyId, String code, Integer status);
+
+  long countByCompany_IdAndDocumentTypeSunat_CodeAndParentDocumentTypeCodeAndStatus(
+      Long companyId, String code, String parentDocumentTypeCode, Integer status);
 }

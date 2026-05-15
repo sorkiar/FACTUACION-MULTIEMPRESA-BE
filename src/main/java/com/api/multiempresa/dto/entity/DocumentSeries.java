@@ -46,6 +46,9 @@ public class DocumentSeries {
   @JoinColumn(name = "document_type_sunat_code", nullable = false)
   private DocumentTypeSunat documentTypeSunat;
 
+  @Column(name = "parent_document_type_code", length = 5)
+  private String parentDocumentTypeCode;
+
   @Column(length = 4, nullable = false)
   private String series;
 

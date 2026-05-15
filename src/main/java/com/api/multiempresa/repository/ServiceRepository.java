@@ -30,4 +30,11 @@ public interface ServiceRepository
       "detractionCode",
   })
   Optional<Service> findByIdAndStatusNot(Long id, Integer status);
+
+  @EntityGraph(attributePaths = {
+      "serviceCategory",
+      "chargeUnit",
+      "detractionCode",
+  })
+  Optional<Service> findByIdAndCompany_IdAndStatusNot(Long id, Long companyId, Integer status);
 }

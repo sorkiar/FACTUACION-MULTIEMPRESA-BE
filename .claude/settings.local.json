@@ -29,7 +29,9 @@
       "Bash(javap -verbose -p org/apache/catalina/connector/Request.class)",
       "Bash(javap -p org/springframework/boot/tomcat/autoconfigure/TomcatServerProperties.class)",
       "Bash(Rename-Item *)",
-      "PowerShell(Rename-Item *)"
+      "PowerShell(Rename-Item *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Proyectos Java\\\\multi-empresa\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)"
     ]
   }
 }

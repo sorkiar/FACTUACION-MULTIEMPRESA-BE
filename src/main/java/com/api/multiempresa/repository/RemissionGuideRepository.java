@@ -35,6 +35,16 @@ public interface RemissionGuideRepository
   })
   Optional<RemissionGuide> findByIdAndDeletedAtIsNull(Long id);
 
+  @EntityGraph(attributePaths = {
+      "documentSeries", "documentSeries.documentTypeSunat",
+      "client", "client.documentType", "client.personType",
+      "clientAddress",
+      "carrier",
+      "items", "items.product",
+      "drivers", "drivers.driver", "drivers.driverVehicle",
+  })
+  Optional<RemissionGuide> findByIdAndCompany_IdAndDeletedAtIsNull(Long id, Long companyId);
+
   // Job accede a guide.getClient(), guide.getCarrier(), guide.getDrivers().driver/vehicle
   @EntityGraph(attributePaths = {
       "client", "client.documentType", "client.personType",
@@ -48,4 +58,10 @@ public interface RemissionGuideRepository
 
   @EntityGraph(attributePaths = {})
   List<RemissionGuide> findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(String status);
+
+  @EntityGraph(attributePaths = {})
+  List<RemissionGuide> findByCompany_IdAndDeletedAtIsNullOrderByIssueDateDesc(Long companyId);
+
+  @EntityGraph(attributePaths = {})
+  List<RemissionGuide> findByCompany_IdAndStatusAndDeletedAtIsNullOrderByIssueDateDesc(Long companyId, String status);
 }

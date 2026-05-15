@@ -49,4 +49,12 @@ public interface DocumentRepository
 
   @EntityGraph(attributePaths = {"documentTypeSunat"})
   List<Document> findByStatusAndDeletedAtIsNullOrderByIssueDateDesc(String status);
+
+  @EntityGraph(attributePaths = {"documentTypeSunat"})
+  List<Document> findByCompany_IdAndDeletedAtIsNullOrderByIssueDateDesc(Long companyId);
+
+  @EntityGraph(attributePaths = {"documentTypeSunat"})
+  List<Document> findByCompany_IdAndStatusAndDeletedAtIsNullOrderByIssueDateDesc(Long companyId, String status);
+
+  Optional<Document> findByIdAndCompany_IdAndDeletedAtIsNull(Long id, Long companyId);
 }

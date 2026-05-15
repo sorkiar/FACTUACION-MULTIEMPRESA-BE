@@ -19,6 +19,7 @@ import com.api.multiempresa.exception.ResourceNotFoundException;
 import com.api.multiempresa.repository.CreditDebitNoteItemRepository;
 import com.api.multiempresa.repository.CreditDebitNoteRepository;
 import com.api.multiempresa.repository.CreditDebitNoteTypeRepository;
+import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.DocumentRepository;
 import com.api.multiempresa.repository.DocumentSeriesRepository;
 import com.api.multiempresa.repository.DocumentTypeSunatRepository;
@@ -30,6 +31,7 @@ import com.api.multiempresa.job.SunatDocumentJobService;
 import com.api.multiempresa.service.CreditDebitNotePdfService;
 import com.api.multiempresa.service.CreditDebitNoteService;
 import com.api.multiempresa.util.JwtUtils;
+import com.api.multiempresa.util.TenantContext;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -45,6 +47,7 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
   private final CreditDebitNoteRepository noteRepository;
   private final CreditDebitNoteItemRepository noteItemRepository;
   private final CreditDebitNoteTypeRepository noteTypeRepository;
+  private final CompanyRepository companyRepository;
   private final SaleRepository saleRepository;
   private final DocumentRepository documentRepository;
   private final DocumentSeriesRepository documentSeriesRepository;
@@ -65,7 +68,10 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
 
   @Override
   public ApiResponse<CreditDebitNoteResponse> findById(Long id) {
-    CreditDebitNote note = noteRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    CreditDebitNote note = (companyId != null
+        ? noteRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : noteRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Nota no encontrada"));
     return new ApiResponse<>("Nota obtenida correctamente", mapper.toResponse(note));
   }
@@ -74,6 +80,7 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
   @Transactional
   public ApiResponse<CreditDebitNoteResponse> create(CreditDebitNoteRequest request) {
 
+    Long companyId = TenantContext.getCurrentCompanyId();
     String username = JwtUtils.extractUsernameFromContext();
 
     // 1. Buscar el tipo de nota (C01-C13 / D01-D12)
@@ -86,8 +93,8 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
     // 2. Determinar tipo de documento SUNAT (07 = crédito, 08 = débito)
     String documentTypeCode = "CREDITO".equals(noteType.getNoteCategory()) ? "07" : "08";
 
-    // 3. Obtener la venta original
-    Sale sale = saleRepository.findByIdAndDeletedAtIsNull(request.getSaleId())
+    // 3. Obtener la venta original (scoped a la empresa del usuario)
+    Sale sale = saleRepository.findByIdAndCompany_IdAndDeletedAtIsNull(request.getSaleId(), companyId)
         .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada"));
 
     // 3.1. Verificar que la venta no tenga una NC de anulación (C01) vigente
@@ -127,9 +134,9 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
         .orElseThrow(() -> new ResourceNotFoundException(
             "Tipo de documento SUNAT no encontrado: " + documentTypeCode));
 
-    // 6. Reservar secuencia en la serie
+    // 6. Reservar secuencia en la serie (scoped a la empresa del usuario)
     DocumentSeries series = documentSeriesRepository
-        .findByIdForUpdate(request.getDocumentSeriesId())
+        .findByIdAndCompanyIdForUpdate(request.getDocumentSeriesId(), companyId)
         .orElseThrow(() -> new ResourceNotFoundException("Serie no encontrada"));
 
     if (!documentTypeCode.equals(series.getDocumentTypeSunat().getCode())) {
@@ -138,12 +145,22 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
               + ("07".equals(documentTypeCode) ? "Nota de Crédito" : "Nota de Débito") + ")");
     }
 
+    String seriesParent = series.getParentDocumentTypeCode();
+    if (seriesParent != null && !seriesParent.equals(origDocTypeCode)) {
+      String expectedLabel = "01".equals(seriesParent) ? "Factura (01)" : "Boleta (03)";
+      String actualLabel = "01".equals(origDocTypeCode) ? "Factura (01)" : "Boleta (03)";
+      throw new BusinessValidationException(
+          "La serie " + series.getSeries() + " es para " + expectedLabel
+              + " pero el documento original es una " + actualLabel + ".");
+    }
+
     Integer nextSequence = series.getCurrentSequence() + 1;
     series.setCurrentSequence(nextSequence);
     documentSeriesRepository.save(series);
 
     // 7. Crear la nota
     CreditDebitNote note = new CreditDebitNote();
+    note.setCompany(companyRepository.getReferenceById(companyId));
     note.setSale(sale);
     note.setOriginalDocument(originalDocument);
     note.setDocumentTypeSunat(documentTypeSunat);
@@ -200,7 +217,8 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
         if (itemReq.getProductId() == null) {
           throw new BusinessValidationException("productId es obligatorio cuando itemType=PRODUCTO");
         }
-        Product product = productRepository.findById(itemReq.getProductId())
+        Product product = productRepository
+            .findByIdAndCompany_IdAndStatusNot(itemReq.getProductId(), companyId, 0)
             .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
         item.setProduct(product);
       }
@@ -210,7 +228,7 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
           throw new BusinessValidationException("serviceId es obligatorio cuando itemType=SERVICIO");
         }
         com.api.multiempresa.dto.entity.Service service = serviceRepository
-            .findById(itemReq.getServiceId())
+            .findByIdAndCompany_IdAndStatusNot(itemReq.getServiceId(), companyId, 0)
             .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
         item.setService(service);
       }

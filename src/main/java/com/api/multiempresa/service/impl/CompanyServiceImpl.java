@@ -19,6 +19,7 @@ import com.api.multiempresa.repository.UserRepository;
 import com.api.multiempresa.service.CompanyService;
 import com.api.multiempresa.service.GoogleDriveService;
 import com.api.multiempresa.util.JwtUtils;
+import com.api.multiempresa.util.TenantContext;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -143,6 +144,24 @@ public class CompanyServiceImpl implements CompanyService {
     company.setUpdatedBy(JwtUtils.extractUsernameFromContext());
     String msg = request.getStatus() == 1 ? "Empresa activada" : "Empresa inactivada";
     return new ApiResponse<>(msg, null);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ApiResponse<CompanyResponse> findMyCompany() {
+    Long companyId = TenantContext.getCompanyId();
+    return new ApiResponse<>("OK", companyMapper.toResponse(findCompanyOrThrow(companyId)));
+  }
+
+  @Override
+  @Transactional
+  public ApiResponse<CompanyResponse> updateMyCompany(CompanyRequest request,
+      MultipartFile logoFile, MultipartFile pfxFile, String pfxPassword) {
+    Long companyId = TenantContext.getCompanyId();
+    Company company = findCompanyOrThrow(companyId);
+    // RUC no puede modificarse desde este endpoint
+    request.setRuc(company.getRuc());
+    return update(companyId, request, logoFile, pfxFile, pfxPassword);
   }
 
   // ── Private helpers ───────────────────────────────────────

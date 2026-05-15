@@ -2,9 +2,7 @@ package com.api.multiempresa.job;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.ExchangeRate;
-import com.api.multiempresa.repository.CompanyRepository;
 import com.api.multiempresa.repository.ExchangeRateRepository;
 import com.api.multiempresa.service.ConfigurationService;
 import java.math.BigDecimal;
@@ -49,21 +47,14 @@ public class ExchangeRateJobService {
       DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
   private final ExchangeRateRepository exchangeRateRepository;
-  private final CompanyRepository companyRepository;
   private final ConfigurationService configurationService;
   private final ObjectMapper objectMapper;
 
-  /** HttpClient con CookieManager para mantener sesión entre GET (token) y POST (datos). */
   private final HttpClient scraperClient = HttpClient.newBuilder()
       .cookieHandler(new CookieManager())
       .followRedirects(HttpClient.Redirect.NORMAL)
       .build();
 
-  /**
-   * Corre cada 5 minutos. Intenta obtener el TC en ventanas horarias cuyo intervalo
-   * se lee dinámicamente de la configuración (clave fetch_hour del grupo tipo_cambio).
-   * Ejemplo con fetch_hour=5: intenta a la 1h, 6h, 11h, 16h, 21h.
-   */
   @Scheduled(fixedRate = 300_000)
   public void scheduledFetch() {
     try {
@@ -86,9 +77,6 @@ public class ExchangeRateJobService {
     }
   }
 
-  /**
-   * Al iniciar la aplicación intenta obtener/actualizar el tipo de cambio del día.
-   */
   @EventListener(ApplicationReadyEvent.class)
   public void fetchOnStartup() {
     try {
@@ -101,24 +89,14 @@ public class ExchangeRateJobService {
 
   private void fetchTodayIfMissing() {
     LocalDate today = LocalDate.now(LIMA_ZONE);
-    List<Company> companies = companyRepository.findByDeletedAtIsNull();
-    if (companies.isEmpty()) {
-      log.debug("Sin empresas activas, omitiendo fetch de tipo de cambio");
-      return;
-    }
-    Company first = companies.get(0);
-    if (exchangeRateRepository.existsByDateAndTypeAndCompanyId(today, "C", first.getId())) {
+    if (exchangeRateRepository.existsByDateAndType(today, "C")) {
       log.debug("TC para {} ya registrado, se omite fetch", today);
       return;
     }
-    fetchAndUpsertToday(today, companies);
+    fetchAndUpsertToday(today);
   }
 
-  /**
-   * Obtiene el TC del día desde e-consulta y lo persiste para todas las empresas.
-   * Si SUNAT aún no publicó el TC se reintentará en la próxima ventana horaria.
-   */
-  private void fetchAndUpsertToday(LocalDate today, List<Company> companies) {
+  private void fetchAndUpsertToday(LocalDate today) {
     try {
       String token = fetchEconsultaToken();
       List<SunatEconsultaRateItem> items =
@@ -130,34 +108,22 @@ public class ExchangeRateJobService {
         if (!date.equals(today)) continue;
 
         BigDecimal value = new BigDecimal(item.getValTipo().trim());
-        String type = item.getCodTipo();
-        for (Company company : companies) {
-          upsertRate(date, value, type, company);
-        }
+        saveRate(date, value, item.getCodTipo());
         saved++;
       }
 
       if (saved == 0) {
         log.warn("e-consulta aún no publicó TC para {}, se reintentará en la próxima ventana horaria.", today);
       } else {
-        log.info("TC del {} actualizado para {} empresa(s).", today, companies.size());
+        log.info("TC del {} actualizado.", today);
       }
     } catch (Exception e) {
       log.error("Error obteniendo TC del día desde e-consulta: {}", e.getMessage());
     }
   }
 
-  // ──────────────────────────────────────────────
-  // Importación masiva via SUNAT e-consulta (API)
-  // ──────────────────────────────────────────────
-
-  /**
-   * Obtiene los tipos de cambio de SUNAT e-consulta para el rango [from, to] (mismo mes/año)
-   * y los persiste para todas las empresas indicadas. Devuelve la cantidad de registros procesados.
-   */
-  public int fetchAndSaveRange(LocalDate from, LocalDate to, List<Company> companies) {
-    log.info("Importando tipos de cambio desde SUNAT e-consulta: {} a {} para {} empresa(s)",
-        from, to, companies.size());
+  public int fetchAndSaveRange(LocalDate from, LocalDate to) {
+    log.info("Importando tipos de cambio desde SUNAT e-consulta: {} a {}", from, to);
     try {
       String token = fetchEconsultaToken();
       List<SunatEconsultaRateItem> items =
@@ -168,14 +134,10 @@ public class ExchangeRateJobService {
         LocalDate date = LocalDate.parse(item.getFecPublica(), ECONSULTA_DATE_FORMAT);
         if (date.isBefore(from) || date.isAfter(to)) continue;
 
-        BigDecimal value = new BigDecimal(item.getValTipo().trim());
-        String type = item.getCodTipo();
-        for (Company company : companies) {
-          upsertRate(date, value, type, company);
-        }
+        upsertRate(date, new BigDecimal(item.getValTipo().trim()), item.getCodTipo());
         saved++;
       }
-      log.info("Importación finalizada. Registros procesados en rango: {}", saved);
+      log.info("Importación finalizada. Registros procesados: {}", saved);
       return saved;
 
     } catch (Exception e) {
@@ -188,10 +150,6 @@ public class ExchangeRateJobService {
   private static final int TOKEN_LENGTH = 52;
   private static final SecureRandom RANDOM = new SecureRandom();
 
-  /**
-   * GET a e-consulta para establecer las cookies de sesión.
-   * El token reCAPTCHA v3 no es recuperable del HTML — se genera uno aleatorio con el mismo formato.
-   */
   private String fetchEconsultaToken() throws Exception {
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(SUNAT_ECONSULTA_BASE))
@@ -215,10 +173,6 @@ public class ExchangeRateJobService {
     return sb.toString();
   }
 
-  /**
-   * POST a e-consulta con {anio, mes, token} → lista de tipos de cambio del mes.
-   * SUNAT usa mes 0-based (JavaScript getMonth(): 0=ene, 11=dic).
-   */
   private List<SunatEconsultaRateItem> fetchMonthlyRates(int year, int month, String token)
       throws Exception {
     String body = objectMapper.writeValueAsString(
@@ -245,10 +199,6 @@ public class ExchangeRateJobService {
     return objectMapper.readValue(response.body(), new TypeReference<>() {});
   }
 
-  // ──────────────────────────────────────────────
-  // DTO interno para la respuesta de e-consulta
-  // ──────────────────────────────────────────────
-
   @Getter
   @Setter
   static class SunatEconsultaRateItem {
@@ -257,35 +207,30 @@ public class ExchangeRateJobService {
     private String codTipo;
   }
 
-  /** Inserta o reemplaza un tipo de cambio en BD para una empresa (bulk import). */
-  private void upsertRate(LocalDate date, BigDecimal value, String type, Company company) {
+  private void upsertRate(LocalDate date, BigDecimal value, String type) {
     ExchangeRate rate = exchangeRateRepository
-        .findByDateAndTypeAndCompanyId(date, type, company.getId())
+        .findByDateAndType(date, type)
         .orElseGet(ExchangeRate::new);
     rate.setDate(date);
     rate.setValue(value);
     rate.setType(type);
-    rate.setCompany(company);
     exchangeRateRepository.save(rate);
-    log.debug("TC upserted: {} tipo {} = {} (empresa {})", date, type, value, company.getId());
+    log.debug("TC upserted: {} tipo {} = {}", date, type, value);
   }
 
-  /** Inserta solo si no existe para una empresa (fetch diario). */
-  private void saveRate(LocalDate date, BigDecimal value, String type, Company company) {
-    if (exchangeRateRepository.existsByDateAndTypeAndCompanyId(date, type, company.getId())) {
-      log.debug("TC para {} tipo {} empresa {} ya existe, ignorando", date, type, company.getId());
+  private void saveRate(LocalDate date, BigDecimal value, String type) {
+    if (exchangeRateRepository.existsByDateAndType(date, type)) {
+      log.debug("TC para {} tipo {} ya existe, ignorando", date, type);
       return;
     }
     ExchangeRate rate = new ExchangeRate();
     rate.setDate(date);
     rate.setValue(value);
     rate.setType(type);
-    rate.setCompany(company);
     try {
       exchangeRateRepository.save(rate);
     } catch (DataIntegrityViolationException e) {
-      log.debug("TC para {} tipo {} empresa {} ya existe (concurrencia), ignorando",
-          date, type, company.getId());
+      log.debug("TC para {} tipo {} ya existe (concurrencia), ignorando", date, type);
     }
   }
 }

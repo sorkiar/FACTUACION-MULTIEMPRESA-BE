@@ -11,6 +11,7 @@ import com.api.multiempresa.repository.DocumentRepository;
 import com.api.multiempresa.repository.RemissionGuideRepository;
 import com.api.multiempresa.service.DocumentFileService;
 import com.api.multiempresa.service.GoogleDriveService;
+import com.api.multiempresa.util.TenantContext;
 import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,8 +36,7 @@ public class DocumentFileServiceImpl implements DocumentFileService {
 
   @Override
   public FileDownload getDocumentXml(Long id) {
-    Document doc = documentRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado con id: " + id));
+    Document doc = findDocument(id);
     requireNotBlank(doc.getXmlBase64(), "XML no disponible para este documento.");
     String filename = doc.getSeries() + "-" + doc.getSequence() + ".xml";
     return new FileDownload(filename, "application/xml", decodeBase64(doc.getXmlBase64()));
@@ -44,8 +44,7 @@ public class DocumentFileServiceImpl implements DocumentFileService {
 
   @Override
   public FileDownload getDocumentCdr(Long id) {
-    Document doc = documentRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado con id: " + id));
+    Document doc = findDocument(id);
     requireNotBlank(doc.getCdrBase64(), "CDR no disponible para este documento.");
     String filename = "CDR-" + doc.getSeries() + "-" + doc.getSequence() + ".xml";
     return new FileDownload(filename, "application/xml", decodeBase64(doc.getCdrBase64()));
@@ -53,8 +52,7 @@ public class DocumentFileServiceImpl implements DocumentFileService {
 
   @Override
   public FileDownload getDocumentPdf(Long id) {
-    Document doc = documentRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado con id: " + id));
+    Document doc = findDocument(id);
     requireNotBlank(doc.getPdfUrl(), "PDF no disponible para este documento.");
     String filename = doc.getSeries() + "-" + doc.getSequence() + ".pdf";
     return new FileDownload(filename, "application/pdf", downloadFromDrive(doc.getPdfUrl()));
@@ -120,13 +118,27 @@ public class DocumentFileServiceImpl implements DocumentFileService {
   // HELPERS
   // ============================================================================================
 
+  private Document findDocument(Long id) {
+    Long companyId = TenantContext.getCurrentCompanyId();
+    return (companyId != null
+        ? documentRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : documentRepository.findById(id))
+        .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado con id: " + id));
+  }
+
   private CreditDebitNote findNote(Long id) {
-    return creditDebitNoteRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    return (companyId != null
+        ? creditDebitNoteRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : creditDebitNoteRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Nota no encontrada con id: " + id));
   }
 
   private RemissionGuide findGuide(Long id) {
-    return remissionGuideRepository.findByIdAndDeletedAtIsNull(id)
+    Long companyId = TenantContext.getCurrentCompanyId();
+    return (companyId != null
+        ? remissionGuideRepository.findByIdAndCompany_IdAndDeletedAtIsNull(id, companyId)
+        : remissionGuideRepository.findByIdAndDeletedAtIsNull(id))
         .orElseThrow(() -> new ResourceNotFoundException("Guía no encontrada con id: " + id));
   }
 

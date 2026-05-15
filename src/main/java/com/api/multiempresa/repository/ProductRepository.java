@@ -32,4 +32,11 @@ public interface ProductRepository
       "detractionCode",
   })
   Optional<Product> findByIdAndStatusNot(Long id, Integer status);
+
+  @EntityGraph(attributePaths = {
+      "category",
+      "unitMeasure",
+      "detractionCode",
+  })
+  Optional<Product> findByIdAndCompany_IdAndStatusNot(Long id, Long companyId, Integer status);
 }
