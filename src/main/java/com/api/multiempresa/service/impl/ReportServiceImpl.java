@@ -8,6 +8,7 @@ import com.api.multiempresa.dto.response.SalesReportRowResponse;
 import com.api.multiempresa.repository.SaleRepository;
 import com.api.multiempresa.service.ConfigurationService;
 import com.api.multiempresa.service.ReportService;
+import com.api.multiempresa.util.TenantContext;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,8 +39,9 @@ public class ReportServiceImpl implements ReportService {
   ) {
     LocalDateTime start = startDate.atStartOfDay();
     LocalDateTime end = endDate.atTime(23, 59, 59);
+    Long companyId = TenantContext.getCurrentCompanyId();
 
-    List<Sale> sales = saleRepository.findForReport(start, end);
+    List<Sale> sales = saleRepository.findForReport(start, end, companyId);
 
     Set<Long> clientIdSet = parseIds(clientIds);
     if (!clientIdSet.isEmpty()) {

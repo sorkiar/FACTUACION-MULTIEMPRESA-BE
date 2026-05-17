@@ -94,11 +94,13 @@ public interface SaleRepository
       "documents.documentTypeSunat",
   })
   @Query("SELECT s FROM Sale s WHERE s.saleDate BETWEEN :start AND :end " +
+      "AND s.company.id = :companyId " +
       "AND s.deletedAt IS NULL AND s.saleStatus <> 'BORRADOR' " +
       "AND NOT EXISTS (SELECT nc.id FROM CreditDebitNote nc WHERE nc.sale = s " +
       "AND nc.creditDebitNoteType.code = 'C01' AND nc.status = 'ACEPTADO' AND nc.deletedAt IS NULL) " +
       "ORDER BY s.saleDate DESC")
   List<Sale> findForReport(
       @Param("start") LocalDateTime start,
-      @Param("end") LocalDateTime end);
+      @Param("end") LocalDateTime end,
+      @Param("companyId") Long companyId);
 }

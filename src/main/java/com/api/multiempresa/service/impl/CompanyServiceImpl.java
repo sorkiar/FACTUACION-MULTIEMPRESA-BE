@@ -84,10 +84,18 @@ public class CompanyServiceImpl implements CompanyService {
 
     normalizeUbigeoFields(request);
     companyMapper.updateEntity(request, company);
+    applyPasswordIfProvided(company::setSunatSecondaryUserPassword, request.getSunatSecondaryUserPassword());
+    applyPasswordIfProvided(company::setSunatGuidePassword, request.getSunatGuidePassword());
     applyLogoIfProvided(company, logoFile, request.getRuc());
     company.setUpdatedBy(JwtUtils.extractUsernameFromContext());
     applyPfxIfProvided(company, pfxFile, pfxPassword);
     return new ApiResponse<>("Empresa actualizada", companyMapper.toResponse(company));
+  }
+
+  private void applyPasswordIfProvided(java.util.function.Consumer<String> setter, String value) {
+    if (value != null && !value.isBlank()) {
+      setter.accept(value);
+    }
   }
 
   private void applyLogoIfProvided(Company company, MultipartFile logoFile, String ruc) {

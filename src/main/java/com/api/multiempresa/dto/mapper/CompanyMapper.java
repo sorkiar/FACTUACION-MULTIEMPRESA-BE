@@ -21,6 +21,8 @@ public interface CompanyMapper {
 
   @Mapping(target = "sunatCertificatePublicKey", ignore = true)
   @Mapping(target = "sunatCertificatePrivateKey", ignore = true)
+  @Mapping(target = "sunatSecondaryUserPassword", ignore = true)
+  @Mapping(target = "sunatGuidePassword", ignore = true)
   @Mapping(target = "status", ignore = true)
   void updateEntity(CompanyRequest request, @MappingTarget Company company);
 }

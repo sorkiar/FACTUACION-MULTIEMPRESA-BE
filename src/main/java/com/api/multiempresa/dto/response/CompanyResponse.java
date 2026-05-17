@@ -24,7 +24,9 @@ public class CompanyResponse {
   private Boolean sunatProduction;
   private Boolean sunatCertificateLoaded;
   private String sunatSecondaryUser;
+  private String sunatSecondaryUserPassword;
   private String sunatGuideId;
+  private String sunatGuidePassword;
   private String ubigDepartment;
   private String ubigProvince;
   private String ubigDistrict;
