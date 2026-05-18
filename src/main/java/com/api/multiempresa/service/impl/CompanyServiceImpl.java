@@ -108,7 +108,7 @@ public class CompanyServiceImpl implements CompanyService {
       java.io.File tempFile = java.io.File.createTempFile("logo-" + ruc + "-", ext);
       logoFile.transferTo(tempFile);
       java.io.File namedFile = new java.io.File(
-          tempFile.getParent(), "logo-" + ruc + ext);
+          tempFile.getParent(), "logo-" + ruc + "-" + System.currentTimeMillis() + ext);
       tempFile.renameTo(namedFile);
       String url = googleDriveService.uploadLogo(namedFile, logosFolderId);
       namedFile.delete();

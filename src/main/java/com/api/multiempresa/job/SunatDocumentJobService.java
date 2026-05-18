@@ -252,6 +252,7 @@ public class SunatDocumentJobService {
       List<CreditDebitNoteItem> items) {
 
     Company company = note.getSale().getCompany();
+    boolean amazoniaLaw = Boolean.TRUE.equals(company.getSunatAmazoniaLaw());
     CompanySendRequest empresa = buildCompanySendRequest(company);
 
     // CLIENTE (del documento original)
@@ -288,7 +289,8 @@ public class SunatDocumentJobService {
           : item.getUnitPrice();
       BigDecimal netPrecioConIgv = cantidad.compareTo(BigDecimal.ZERO) != 0
           ? item.getTotalAmount().divide(cantidad, 6, RoundingMode.HALF_UP)
-          : item.getUnitPrice().multiply(new BigDecimal("1.18")).setScale(2, RoundingMode.HALF_UP);
+          : amazoniaLaw ? item.getUnitPrice()
+              : item.getUnitPrice().multiply(new BigDecimal("1.18")).setScale(2, RoundingMode.HALF_UP);
 
       ItemSendRequest dto = new ItemSendRequest();
       String unidad = "NIU";
@@ -304,7 +306,7 @@ public class SunatDocumentJobService {
       dto.setItcoSubTotal(item.getSubtotalAmount());
       dto.setItcoIgv(item.getTaxAmount());
       dto.setItcoTotal(item.getTotalAmount());
-      dto.setTipoAfectacionIgv("GRAVADO");
+      dto.setTipoAfectacionIgv(amazoniaLaw ? "EXONERADO" : "GRAVADO");
       itemDtos.add(dto);
     }
 
@@ -548,6 +550,7 @@ public class SunatDocumentJobService {
       List<RemissionGuideDriver> drivers) {
 
     Company company = guide.getCompany();
+    boolean amazoniaLaw = Boolean.TRUE.equals(company.getSunatAmazoniaLaw());
     CompanySendRequest empresa = buildCompanySendRequestWithGuia(company);
 
     // Destinatario (como cliente del comprobante)
@@ -573,9 +576,9 @@ public class SunatDocumentJobService {
       BigDecimal subtotal = item.getSubtotalAmount() != null ? item.getSubtotalAmount() : BigDecimal.ZERO;
       BigDecimal igv = item.getTaxAmount() != null ? item.getTaxAmount() : BigDecimal.ZERO;
       BigDecimal total = item.getTotalAmount() != null ? item.getTotalAmount() : BigDecimal.ZERO;
-      BigDecimal valorUnitario = unitPrice.compareTo(BigDecimal.ZERO) > 0
+      BigDecimal valorUnitario = (!amazoniaLaw && unitPrice.compareTo(BigDecimal.ZERO) > 0)
           ? unitPrice.divide(new BigDecimal("1.18"), 6, RoundingMode.HALF_UP)
-          : BigDecimal.ZERO;
+          : unitPrice;
 
       ItemSendRequest dto = new ItemSendRequest();
       dto.setItcoUnidadMedida(item.getUnitMeasureSunat());
@@ -586,7 +589,7 @@ public class SunatDocumentJobService {
       dto.setItcoSubTotal(subtotal);
       dto.setItcoIgv(igv);
       dto.setItcoTotal(total);
-      dto.setTipoAfectacionIgv("GRAVADO");
+      dto.setTipoAfectacionIgv(amazoniaLaw ? "EXONERADO" : "GRAVADO");
       itemDtos.add(dto);
     }
 
@@ -845,6 +848,7 @@ public class SunatDocumentJobService {
       List<SaleItem> items) {
 
     Company company = sale.getCompany();
+    boolean amazoniaLaw = Boolean.TRUE.equals(company.getSunatAmazoniaLaw());
 
     // ==========================
     // EMPRESA
@@ -891,9 +895,9 @@ public class SunatDocumentJobService {
 
       // unitPrice es ahora la BASE sin IGV (nuevo modelo: precios excluyen IGV)
       BigDecimal valorUnitario = item.getUnitPrice();
-      BigDecimal precioConIgv = item.getUnitPrice()
-          .multiply(new BigDecimal("1.18"))
-          .setScale(2, RoundingMode.HALF_UP);
+      BigDecimal precioConIgv = amazoniaLaw
+          ? item.getUnitPrice()
+          : item.getUnitPrice().multiply(new BigDecimal("1.18")).setScale(2, RoundingMode.HALF_UP);
 
       // Descuento en base: grossBase - subtotalAmount (0 si no hay descuento)
       // Garantiza: valorUnitario * cantidad - descuentoAfecta == itcoSubTotal
@@ -918,7 +922,7 @@ public class SunatDocumentJobService {
       dto.setItcoSubTotal(item.getSubtotalAmount());
       dto.setItcoIgv(item.getTaxAmount());
       dto.setItcoTotal(item.getTotalAmount());
-      dto.setTipoAfectacionIgv("GRAVADO");
+      dto.setTipoAfectacionIgv(amazoniaLaw ? "EXONERADO" : "GRAVADO");
 
       // Retención por ítem en moneda del comprobante (el facturador lo coloca en AllowanceCharge
       // con currencyID de la moneda del doc; SUNAT valida Amount = MultiplierFactor × BaseAmount)

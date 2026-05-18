@@ -1,6 +1,7 @@
 package com.api.multiempresa.service.impl;
 
 import com.api.multiempresa.dto.entity.Client;
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.DetractionCode;
 import com.api.multiempresa.repository.DetractionCodeRepository;
 import com.api.multiempresa.dto.entity.Document;
@@ -125,7 +126,10 @@ public class SaleServiceImpl implements SaleService {
     String username = JwtUtils.extractUsernameFromContext();
 
     Sale sale = new Sale();
-    sale.setCompany(companyRepository.getReferenceById(companyId));
+    Company company = companyRepository.findById(companyId)
+        .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada"));
+    sale.setCompany(company);
+    boolean amazoniaLaw = Boolean.TRUE.equals(company.getSunatAmazoniaLaw());
     sale.setCurrencyCode(resolveCurrencyCode(request.getCurrencyCode()));
     sale.setTaxPercentage(new BigDecimal("18"));
     sale.setCreatedBy(username);
@@ -148,7 +152,7 @@ public class SaleServiceImpl implements SaleService {
 
     sale = saleRepository.save(sale);
 
-    Totals totals = rebuildItemsAndTotals(sale, request.getItems(), username);
+    Totals totals = rebuildItemsAndTotals(sale, request.getItems(), username, amazoniaLaw);
 
     sale.setSubtotalAmount(totals.subtotal());
     sale.setTaxAmount(totals.tax());
@@ -228,7 +232,8 @@ public class SaleServiceImpl implements SaleService {
 
     saleItemRepository.deleteBySaleId(sale.getId());
 
-    Totals totals = rebuildItemsAndTotals(sale, request.getItems(), username);
+    boolean amazoniaLaw = Boolean.TRUE.equals(sale.getCompany().getSunatAmazoniaLaw());
+    Totals totals = rebuildItemsAndTotals(sale, request.getItems(), username, amazoniaLaw);
 
     sale.setSubtotalAmount(totals.subtotal());
     sale.setTaxAmount(totals.tax());
@@ -272,7 +277,7 @@ public class SaleServiceImpl implements SaleService {
   // Helpers de lógica de negocio
   // ============================================================
 
-  private Totals rebuildItemsAndTotals(Sale sale, List<SaleItemRequest> items, String username) {
+  private Totals rebuildItemsAndTotals(Sale sale, List<SaleItemRequest> items, String username, boolean amazoniaLaw) {
 
     if (items == null || items.isEmpty()) {
       throw new BusinessValidationException("Debe registrar al menos un item");
@@ -297,7 +302,7 @@ public class SaleServiceImpl implements SaleService {
           .multiply(hundred.subtract(discountPct))
           .divide(hundred, 10, RoundingMode.HALF_UP);
 
-      BigDecimal itemTax = lineTotal.multiply(taxRate);
+      BigDecimal itemTax = amazoniaLaw ? BigDecimal.ZERO : lineTotal.multiply(taxRate);
       BigDecimal itemTotal = lineTotal.add(itemTax);
 
       SaleItem item = new SaleItem();
@@ -345,7 +350,7 @@ public class SaleServiceImpl implements SaleService {
     saleItemRepository.saveAll(itemsToSave);
 
     // Global totals — round only when persisting (HALF_UP, 2 dec)
-    BigDecimal igv = subtotal.multiply(taxRate);
+    BigDecimal igv = amazoniaLaw ? BigDecimal.ZERO : subtotal.multiply(taxRate);
     BigDecimal total = subtotal.add(igv);
 
     return new Totals(

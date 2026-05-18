@@ -1,6 +1,7 @@
 package com.api.multiempresa.repository;
 
 import com.api.multiempresa.dto.entity.PaymentMethod;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,4 +13,6 @@ public interface PaymentMethodRepository
   boolean existsByCode(String code);
 
   Optional<PaymentMethod> findByIdAndStatusNot(Integer id, Integer status);
+
+  List<PaymentMethod> findByStatusOrderByIdAsc(Integer status);
 }

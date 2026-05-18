@@ -1,5 +1,6 @@
 package com.api.multiempresa.service.impl;
 
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.CreditDebitNote;
 import com.api.multiempresa.dto.entity.CreditDebitNoteItem;
 import com.api.multiempresa.dto.entity.CreditDebitNoteType;
@@ -82,6 +83,9 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
 
     Long companyId = TenantContext.getCurrentCompanyId();
     String username = JwtUtils.extractUsernameFromContext();
+    Company company = companyRepository.findById(companyId)
+        .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada"));
+    boolean amazoniaLaw = Boolean.TRUE.equals(company.getSunatAmazoniaLaw());
 
     // 1. Buscar el tipo de nota (C01-C13 / D01-D12)
     CreditDebitNoteType noteType = noteTypeRepository
@@ -160,7 +164,7 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
 
     // 7. Crear la nota
     CreditDebitNote note = new CreditDebitNote();
-    note.setCompany(companyRepository.getReferenceById(companyId));
+    note.setCompany(company);
     note.setSale(sale);
     note.setOriginalDocument(originalDocument);
     note.setDocumentTypeSunat(documentTypeSunat);
@@ -195,7 +199,7 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
           .multiply(hundred.subtract(discountPct))
           .divide(hundred, 10, RoundingMode.HALF_UP);
 
-      BigDecimal itemTax = lineTotal.multiply(taxRate);
+      BigDecimal itemTax = amazoniaLaw ? BigDecimal.ZERO : lineTotal.multiply(taxRate);
       BigDecimal itemTotal = lineTotal.add(itemTax);
 
       BigDecimal itemBase = lineTotal.setScale(2, RoundingMode.HALF_UP);
@@ -239,7 +243,7 @@ public class CreditDebitNoteServiceImpl implements CreditDebitNoteService {
     }
 
     // Global totals — round only when persisting (HALF_UP, 2 dec)
-    BigDecimal igv = subtotal.multiply(taxRate);
+    BigDecimal igv = amazoniaLaw ? BigDecimal.ZERO : subtotal.multiply(taxRate);
     BigDecimal total = subtotal.add(igv);
 
     note.setSubtotalAmount(subtotal.setScale(2, RoundingMode.HALF_UP));

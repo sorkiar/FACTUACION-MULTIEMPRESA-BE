@@ -1,6 +1,7 @@
 package com.api.multiempresa.service.impl;
 
 import com.api.multiempresa.dto.entity.Carrier;
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.Client;
 import com.api.multiempresa.dto.entity.ClientAddress;
 import com.api.multiempresa.dto.entity.DocumentSeries;
@@ -89,6 +90,10 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
 
     Long companyId = TenantContext.getCurrentCompanyId();
     String username = JwtUtils.extractUsernameFromContext();
+    boolean amazoniaLaw = companyRepository.findById(companyId)
+        .map(Company::getSunatAmazoniaLaw)
+        .map(Boolean.TRUE::equals)
+        .orElse(false);
 
     // 1. Validaciones de negocio
     if ("TRANSPORTE_PRIVADO".equals(request.getTransportMode())) {
@@ -190,11 +195,14 @@ public class RemissionGuideServiceImpl implements RemissionGuideService {
           itemReq.getUnitMeasureSunat() != null ? itemReq.getUnitMeasureSunat() : "NIU");
 
       BigDecimal unitPrice = itemReq.getUnitPrice();
-      BigDecimal valorUnitario = unitPrice.divide(new BigDecimal("1.18"), 6, RoundingMode.HALF_UP);
+      BigDecimal valorUnitario = amazoniaLaw
+          ? unitPrice
+          : unitPrice.divide(new BigDecimal("1.18"), 6, RoundingMode.HALF_UP);
       BigDecimal subtotal = valorUnitario.multiply(itemReq.getQuantity())
           .setScale(2, RoundingMode.HALF_UP);
-      BigDecimal tax = subtotal.multiply(new BigDecimal("0.18"))
-          .setScale(2, RoundingMode.HALF_UP);
+      BigDecimal tax = amazoniaLaw
+          ? BigDecimal.ZERO
+          : subtotal.multiply(new BigDecimal("0.18")).setScale(2, RoundingMode.HALF_UP);
       BigDecimal total = subtotal.add(tax);
 
       item.setUnitPrice(unitPrice);
