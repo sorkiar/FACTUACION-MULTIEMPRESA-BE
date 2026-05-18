@@ -1,5 +1,6 @@
 package com.api.multiempresa.service.impl;
 
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.RemissionGuide;
 import com.api.multiempresa.dto.entity.RemissionGuideDriver;
 import com.api.multiempresa.dto.entity.RemissionGuideItem;
@@ -11,6 +12,7 @@ import com.api.multiempresa.repository.RemissionGuideRepository;
 import com.api.multiempresa.service.ConfigurationService;
 import com.api.multiempresa.service.GoogleDriveService;
 import com.api.multiempresa.service.RemissionGuidePdfService;
+import com.api.multiempresa.util.PdfLogoResolver;
 import jakarta.transaction.Transactional;
 import java.io.File;
 import java.io.InputStream;
@@ -41,6 +43,7 @@ public class RemissionGuidePdfServiceImpl implements RemissionGuidePdfService {
   private final RemissionGuideDriverRepository driverRepository;
   private final GoogleDriveService googleDriveService;
   private final ConfigurationService configurationService;
+  private final PdfLogoResolver pdfLogoResolver;
 
   @Value("${drive.folder-id.guias}")
   private String guiasFolderId;
@@ -203,8 +206,7 @@ public class RemissionGuidePdfServiceImpl implements RemissionGuidePdfService {
       JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(dataList);
 
       Map<String, Object> parameters = new HashMap<>();
-      parameters.put("urlImagen",
-          Objects.requireNonNull(getClass().getResource("/img/logo.png")).toString());
+      parameters.put("urlImagen", pdfLogoResolver.resolveLogoUrl(guide.getCompany()));
 
       JasperPrint jasperPrint =
           JasperFillManager.fillReport(jasperReport, parameters, dataSource);

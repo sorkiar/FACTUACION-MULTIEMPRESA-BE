@@ -42,6 +42,7 @@ import com.api.multiempresa.repository.spec.SaleSpecification;
 import com.api.multiempresa.service.ConfigurationService;
 import com.api.multiempresa.service.DocumentPdfService;
 import com.api.multiempresa.service.GoogleDriveService;
+import com.api.multiempresa.util.PdfLogoResolver;
 import com.api.multiempresa.service.SaleService;
 import com.api.multiempresa.util.JwtUtils;
 import com.api.multiempresa.util.TenantContext;
@@ -95,6 +96,7 @@ public class SaleServiceImpl implements SaleService {
   private final DocumentPdfService documentPdfService;
   private final GoogleDriveService googleDriveService;
   private final ConfigurationService configurationService;
+  private final PdfLogoResolver pdfLogoResolver;
   private final SunatDocumentJobService sunatDocumentJobService;
   private final com.api.multiempresa.service.SunatSendConfigService sunatSendConfigService;
 
@@ -519,6 +521,7 @@ public class SaleServiceImpl implements SaleService {
   public byte[] generateQuotation(SaleRequest request) {
     Client client = clientRepository.findById(request.getClientId())
         .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+    Company quotationCompany = companyRepository.findById(TenantContext.getCurrentCompanyId()).orElse(null);
 
     Map<String, String> config = configurationService.getGroup("empresa_emisora");
 
@@ -616,8 +619,7 @@ public class SaleServiceImpl implements SaleService {
       JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(dataList);
 
       Map<String, Object> parameters = new HashMap<>();
-      parameters.put("urlImagen",
-          Objects.requireNonNull(getClass().getResource("/img/logo.png")).toString());
+      parameters.put("urlImagen", pdfLogoResolver.resolveLogoUrl(quotationCompany));
 
       JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
 

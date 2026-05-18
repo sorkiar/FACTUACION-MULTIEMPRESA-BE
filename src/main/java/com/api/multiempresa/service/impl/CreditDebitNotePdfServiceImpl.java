@@ -1,6 +1,7 @@
 package com.api.multiempresa.service.impl;
 
 import com.api.multiempresa.dto.entity.Client;
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.dto.entity.CreditDebitNote;
 import com.api.multiempresa.dto.entity.CreditDebitNoteItem;
 import com.api.multiempresa.dto.entity.Sale;
@@ -13,6 +14,7 @@ import com.api.multiempresa.repository.ExchangeRateRepository;
 import com.api.multiempresa.service.ConfigurationService;
 import com.api.multiempresa.service.CreditDebitNotePdfService;
 import com.api.multiempresa.service.GoogleDriveService;
+import com.api.multiempresa.util.PdfLogoResolver;
 import jakarta.transaction.Transactional;
 import java.io.File;
 import java.io.InputStream;
@@ -44,6 +46,7 @@ public class CreditDebitNotePdfServiceImpl implements CreditDebitNotePdfService 
   private final ExchangeRateRepository exchangeRateRepository;
   private final GoogleDriveService googleDriveService;
   private final ConfigurationService configurationService;
+  private final PdfLogoResolver pdfLogoResolver;
 
   @Value("${drive.folder-id.notas}")
   private String notasFolderId;
@@ -174,8 +177,7 @@ public class CreditDebitNotePdfServiceImpl implements CreditDebitNotePdfService 
       JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(dataList);
 
       Map<String, Object> parameters = new HashMap<>();
-      parameters.put("urlImagen",
-          Objects.requireNonNull(getClass().getResource("/img/logo.png")).toString());
+      parameters.put("urlImagen", pdfLogoResolver.resolveLogoUrl(note.getCompany()));
       parameters.put("comp_total_amount", note.getTotalAmount());
 
       BigDecimal tipoConversion = BigDecimal.ONE;

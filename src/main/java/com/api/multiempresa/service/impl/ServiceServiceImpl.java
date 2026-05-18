@@ -17,7 +17,9 @@ import com.api.multiempresa.repository.ServiceCategoryRepository;
 import com.api.multiempresa.repository.ServiceRepository;
 import com.api.multiempresa.repository.spec.ServiceSpecification;
 import com.api.multiempresa.service.ConfigurationService;
+import com.api.multiempresa.dto.entity.Company;
 import com.api.multiempresa.service.GoogleDriveService;
+import com.api.multiempresa.util.PdfLogoResolver;
 import com.api.multiempresa.service.ServiceService;
 import com.api.multiempresa.service.SkuSequenceService;
 import com.api.multiempresa.repository.CompanyRepository;
@@ -56,6 +58,7 @@ public class ServiceServiceImpl implements ServiceService {
   private final SkuSequenceService skuSequenceService;
   private final ConfigurationService configurationService;
   private final CompanyRepository companyRepository;
+  private final PdfLogoResolver pdfLogoResolver;
 
   @Value("${drive.folder-id.servicios-imagenes}")
   private String SERVICE_IMAGE_FOLDER_ID;
@@ -264,6 +267,8 @@ public class ServiceServiceImpl implements ServiceService {
         repository.findByIdAndStatusNot(id, 2)
             .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
 
+    Company serviceCompany = companyRepository.findById(TenantContext.getCurrentCompanyId()).orElse(null);
+
     try {
       Map<String, String> config = configurationService.getGroup("empresa_emisora");
 
@@ -296,8 +301,7 @@ public class ServiceServiceImpl implements ServiceService {
       JasperReport jasperReport = JasperCompileManager.compileReport(inputStream);
 
       Map<String, Object> parameters = new HashMap<>();
-      parameters.put("urlImagen",
-          Objects.requireNonNull(getClass().getResource("/img/logo.png")).toString());
+      parameters.put("urlImagen", pdfLogoResolver.resolveLogoUrl(serviceCompany));
 
       JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
 
