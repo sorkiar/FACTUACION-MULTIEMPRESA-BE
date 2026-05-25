@@ -67,7 +67,7 @@ public class ProductServiceImpl implements ProductService {
     Long companyId = TenantContext.getCurrentCompanyId();
     String sku = skuSequenceService.registerSku("PRD");
 
-    if (repository.existsBySku(sku)) {
+    if (repository.existsBySkuAndCompanyId(sku, companyId)) {
       throw new BusinessValidationException("El SKU ya existe");
     }
 

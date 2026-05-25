@@ -63,7 +63,7 @@
     <field name="technical_sheet_url" class="java.lang.String"/>
     <detail>
         <band height="558" splitType="Stretch">
-            <image scaleImage="RetainShape" hAlign="Left" vAlign="Middle">
+            <image scaleImage="RetainShape" hAlign="Center" vAlign="Middle">
                 <reportElement x="0" y="0" width="150" height="36"/>
                 <imageExpression><![CDATA[$P{urlImagen}]]></imageExpression>
             </image>

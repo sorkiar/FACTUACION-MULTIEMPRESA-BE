@@ -20,6 +20,7 @@ import com.api.multiempresa.repository.SaleRepository;
 import com.api.multiempresa.service.ConfigurationService;
 import com.api.multiempresa.service.DocumentPdfService;
 import com.api.multiempresa.service.GoogleDriveService;
+import com.api.multiempresa.util.PdfLogoResolver;
 import jakarta.transaction.Transactional;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -59,6 +60,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
   private final ExchangeRateRepository exchangeRateRepository;
   private final GoogleDriveService googleDriveService;
   private final ConfigurationService configurationService;
+  private final PdfLogoResolver pdfLogoResolver;
 
   @Value("${drive.folder-id.boletas}")
   private String boletasFolderId;
@@ -252,7 +254,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
 
       Map<String, Object> parameters = new HashMap<>();
 
-      parameters.put("urlImagen", resolveLogoUrl(company));
+      parameters.put("urlImagen", pdfLogoResolver.resolveLogoUrl(company));
       parameters.put("cuotas_texto", cuotasTexto);
       parameters.put("guias_relacionadas", guiasTexto);
       parameters.put("orden_compra", sale.getPurchaseOrder());
@@ -375,27 +377,6 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
     }
 
     return "";
-  }
-
-  private String resolveLogoUrl(Company company) {
-    String defaultLogo = Objects.requireNonNull(
-        getClass().getResource("/img/logo.png")).toString();
-    if (company == null || company.getLogoUrl() == null || company.getLogoUrl().isBlank()) {
-      return defaultLogo;
-    }
-    try {
-      String logoUrl = company.getLogoUrl();
-      String fileId = logoUrl.substring(logoUrl.lastIndexOf('/') + 1);
-      byte[] bytes = googleDriveService.downloadFileById(fileId);
-      java.io.File tempFile = java.io.File.createTempFile("logo-", ".png");
-      java.nio.file.Files.write(tempFile.toPath(), bytes);
-      tempFile.deleteOnExit();
-      return tempFile.toURI().toString();
-    } catch (Exception e) {
-      log.warn("No se pudo descargar el logo de la empresa {}, usando logo por defecto: {}",
-          company.getRuc(), e.getMessage());
-      return defaultLogo;
-    }
   }
 
   private String buildQrString(Document document, Sale sale, String companyRuc) {

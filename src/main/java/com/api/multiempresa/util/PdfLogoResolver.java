@@ -1,8 +1,8 @@
 package com.api.multiempresa.util;
 
 import com.api.multiempresa.dto.entity.Company;
+import com.api.multiempresa.exception.BusinessValidationException;
 import com.api.multiempresa.service.GoogleDriveService;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,10 +15,9 @@ public class PdfLogoResolver {
   private final GoogleDriveService googleDriveService;
 
   public String resolveLogoUrl(Company company) {
-    String defaultLogo = Objects.requireNonNull(
-        getClass().getResource("/img/logo.png")).toString();
     if (company == null || company.getLogoUrl() == null || company.getLogoUrl().isBlank()) {
-      return defaultLogo;
+      throw new BusinessValidationException(
+          "La empresa no tiene logo configurado. Configure el logo antes de generar comprobantes.");
     }
     try {
       String logoUrl = company.getLogoUrl();
@@ -28,10 +27,12 @@ public class PdfLogoResolver {
       java.nio.file.Files.write(tempFile.toPath(), bytes);
       tempFile.deleteOnExit();
       return tempFile.toURI().toString();
+    } catch (BusinessValidationException e) {
+      throw e;
     } catch (Exception e) {
-      log.warn("No se pudo descargar el logo de la empresa {}, usando logo por defecto: {}",
-          company.getRuc(), e.getMessage());
-      return defaultLogo;
+      log.error("Error al descargar el logo de la empresa {}: {}", company.getRuc(), e.getMessage());
+      throw new BusinessValidationException(
+          "No se pudo obtener el logo de la empresa. Verifique la configuración e intente nuevamente.");
     }
   }
 }

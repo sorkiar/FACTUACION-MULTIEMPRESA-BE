@@ -460,7 +460,7 @@ public class SaleServiceImpl implements SaleService {
     }
 
     DocumentSeries series = documentSeriesRepository
-        .findByIdForUpdate(documentSeriesId)
+        .findByIdAndCompanyIdForUpdate(documentSeriesId, sale.getCompany().getId())
         .orElseThrow(() -> new ResourceNotFoundException("Serie no encontrada"));
 
     Integer nextSequence = series.getCurrentSequence() + 1;

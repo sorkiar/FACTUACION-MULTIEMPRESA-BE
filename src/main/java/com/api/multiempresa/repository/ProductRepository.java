@@ -22,8 +22,6 @@ public interface ProductRepository
   @NullMarked
   List<Product> findAll(Specification<Product> spec);
 
-  boolean existsBySku(String sku);
-
   boolean existsBySkuAndCompanyId(String sku, Long companyId);
 
   @EntityGraph(attributePaths = {

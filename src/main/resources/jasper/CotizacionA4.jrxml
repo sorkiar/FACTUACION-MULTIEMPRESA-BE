@@ -131,8 +131,8 @@
                 <textFieldExpression><![CDATA[$F{comp_numero_comprobante}]]></textFieldExpression>
             </textField>
 
-            <!-- Logo empresa (izquierda) -->
-            <image scaleImage="RetainShape" hAlign="Left" vAlign="Middle">
+            <!-- Logo empresa -->
+            <image scaleImage="RetainShape" hAlign="Center" vAlign="Middle">
                 <reportElement x="0" y="0" width="180" height="55"/>
                 <imageExpression><![CDATA[$P{urlImagen}]]></imageExpression>
             </image>

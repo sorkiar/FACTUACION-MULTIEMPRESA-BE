@@ -22,7 +22,7 @@ public interface ServiceRepository
   @NullMarked
   List<Service> findAll(Specification<Service> spec);
 
-  boolean existsBySku(String sku);
+  boolean existsBySkuAndCompanyId(String sku, Long companyId);
 
   @EntityGraph(attributePaths = {
       "serviceCategory",

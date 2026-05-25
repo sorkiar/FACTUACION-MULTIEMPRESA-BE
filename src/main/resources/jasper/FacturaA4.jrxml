@@ -319,7 +319,7 @@
 				</textElement>
 				<textFieldExpression><![CDATA[($F{comp_condicion_pago}.equals("CREDITO") && $F{priorizar_despacho}.booleanValue()) ? "CONTADO" : $F{comp_condicion_pago}]]></textFieldExpression>
 			</textField>
-			<image scaleImage="RetainShape" hAlign="Left" vAlign="Middle">
+			<image scaleImage="RetainShape" hAlign="Center" vAlign="Middle">
 				<reportElement x="0" y="0" width="180" height="55" uuid="31426b11-d3a2-44b1-8dbf-a21f87da8165"/>
 				<imageExpression><![CDATA[$P{urlImagen}]]></imageExpression>
 			</image>

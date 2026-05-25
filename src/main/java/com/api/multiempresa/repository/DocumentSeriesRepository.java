@@ -18,21 +18,9 @@ public interface DocumentSeriesRepository
   @EntityGraph(attributePaths = {"documentTypeSunat"})
   Optional<DocumentSeries> findByIdAndStatusNot(Long id, Integer status);
 
-  @EntityGraph(attributePaths = {"documentTypeSunat"})
-  Optional<DocumentSeries> findByDocumentTypeSunat_CodeAndSeriesAndStatusNot(
-      String code, String series, Integer status);
-
-  @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT ds FROM DocumentSeries ds JOIN FETCH ds.documentTypeSunat WHERE ds.id = :id")
-  Optional<DocumentSeries> findByIdForUpdate(@Param("id") Long id);
-
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT ds FROM DocumentSeries ds JOIN FETCH ds.documentTypeSunat WHERE ds.id = :id AND ds.company.id = :companyId")
   Optional<DocumentSeries> findByIdAndCompanyIdForUpdate(@Param("id") Long id, @Param("companyId") Long companyId);
-
-  @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT ds FROM DocumentSeries ds JOIN FETCH ds.documentTypeSunat WHERE ds.documentTypeSunat.code = :code AND ds.status = :status ORDER BY ds.id ASC")
-  List<DocumentSeries> findActiveByDocumentTypeCodeForUpdate(@Param("code") String code, @Param("status") Integer status);
 
   @EntityGraph(attributePaths = {"documentTypeSunat"})
   Optional<DocumentSeries> findFirstByDocumentTypeSunat_CodeAndStatusNotOrderByIdAsc(

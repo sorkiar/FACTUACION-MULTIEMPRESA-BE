@@ -83,6 +83,8 @@ public class ServiceServiceImpl implements ServiceService {
       MultipartFile image,
       MultipartFile technicalSheet
   ) {
+    Long companyId = TenantContext.getCurrentCompanyId();
+
     ServiceCategory category = serviceCategoryRepository.findById(
         request.getServiceCategoryId()
     ).orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada"));
@@ -93,7 +95,7 @@ public class ServiceServiceImpl implements ServiceService {
 
     String sku = skuSequenceService.registerSku("SRV");
 
-    if (repository.existsBySku(sku)) {
+    if (repository.existsBySkuAndCompanyId(sku, companyId)) {
       throw new BusinessValidationException("El SKU ya existe");
     }
 
@@ -152,10 +154,7 @@ public class ServiceServiceImpl implements ServiceService {
       service.setDetractionCode(resolveDetractionCode(request.getDetractionCodeId()));
       service.setStatus(1);
       service.setCreatedBy(JwtUtils.extractUsernameFromContext());
-      Long companyId = TenantContext.getCurrentCompanyId();
-      if (companyId != null) {
-        service.setCompany(companyRepository.getReferenceById(companyId));
-      }
+      service.setCompany(companyRepository.getReferenceById(companyId));
 
       return new ApiResponse<>(
           "Servicio registrado correctamente",

@@ -137,15 +137,15 @@ public class DocumentSeriesServiceImpl implements DocumentSeriesService {
   @Transactional(readOnly = true)
   public ApiResponse<DocumentSeriesResponse> getNextSequencePreview(String documentTypeCode) {
     Long companyId = TenantContext.getCompanyId();
+    if (companyId == null) {
+      throw new BusinessValidationException("Contexto de empresa no disponible");
+    }
 
-    DocumentSeries series = (companyId != null)
-        ? repository.findFirstByDocumentTypeSunat_CodeAndStatusAndCompany_IdOrderByIdAsc(
+    DocumentSeries series = repository
+        .findFirstByDocumentTypeSunat_CodeAndStatusAndCompany_IdOrderByIdAsc(
             documentTypeCode, STATUS_ACTIVE, companyId)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "No existe serie activa para el tipo de documento: " + documentTypeCode))
-        : repository.findFirstByDocumentTypeSunat_CodeAndStatusNotOrderByIdAsc(documentTypeCode, 2)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "No existe serie activa para el tipo de documento: " + documentTypeCode));
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "No existe serie activa para el tipo de documento: " + documentTypeCode));
 
     DocumentSeriesResponse response = mapper.toResponse(series);
     response.setSequence(series.getCurrentSequence() + 1);
@@ -157,9 +157,11 @@ public class DocumentSeriesServiceImpl implements DocumentSeriesService {
   public ApiResponse<DocumentSeriesResponse> getNextSequenceById(Long seriesId) {
     Long companyId = TenantContext.getCompanyId();
 
-    DocumentSeries series = (companyId != null
-        ? repository.findByIdAndCompany_Id(seriesId, companyId)
-        : repository.findById(seriesId))
+    if (companyId == null) {
+      throw new BusinessValidationException("Contexto de empresa no disponible");
+    }
+
+    DocumentSeries series = repository.findByIdAndCompany_Id(seriesId, companyId)
         .orElseThrow(() -> new ResourceNotFoundException("No existe serie con id: " + seriesId));
 
     DocumentSeriesResponse response = mapper.toResponse(series);

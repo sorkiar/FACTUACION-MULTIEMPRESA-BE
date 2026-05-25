@@ -355,7 +355,7 @@
                 </textElement>
                 <textFieldExpression><![CDATA[$F{comp_fecha_traslado}]]></textFieldExpression>
             </textField>
-            <image scaleImage="RealHeight" isLazy="true">
+            <image scaleImage="RealHeight" hAlign="Center" vAlign="Middle" isLazy="true">
                 <reportElement x="0" y="0" width="311" height="55"
                                uuid="31426b11-d3a2-44b1-8dbf-a21f87da8165"/>
                 <imageExpression><![CDATA[$P{urlImagen}]]></imageExpression>

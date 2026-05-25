@@ -86,10 +86,21 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public ApiResponse<UserResponse> update(Long id, UserRequest request) {
+    Long companyId = TenantContext.getCompanyId();
 
     User user = repository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
+    DocumentType documentType = documentTypeRepository.findById(
+        request.getDocumentTypeId()
+    ).orElseThrow(() -> new ResourceNotFoundException("Tipo de documento no encontrado"));
+
+    Profile profile = profileRepository.findByIdAndCompany_IdAndIsSystemFalse(
+        request.getProfileId(), companyId
+    ).orElseThrow(() -> new ResourceNotFoundException("Perfil no encontrado"));
+
+    user.setDocumentType(documentType);
+    user.setProfile(profile);
     user.setDocumentNumber(request.getDocumentNumber());
     user.setFirstName(request.getFirstName());
     user.setLastName(request.getLastName());
